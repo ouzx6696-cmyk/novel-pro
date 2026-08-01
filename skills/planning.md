@@ -2,6 +2,29 @@
 
 小说项目从题材选择开始。初始化根据题材建立项目骨架，并把长期 cursor 放在 `outline.volume`。真正的创作依次完成卷纲与设定、幕结构、章纲和 Prompt；每一层只展开下一层需要的内容。`outline.acts` 是长期幕阶段，`outline.act-map` 和 `outline.act` 只是该阶段的临时 operation。
 
+## 规划链执行入口（先读这一节）
+
+顶层派发规划链任一 operation 前，按下列链路逐行执行；每行的「读/写」是精确文件接口，「判定」是完成条件。知识调用见下方「知识库方法映射」。
+
+| 步骤 | operation | 角色 | 读 | 写 | 判定 → 下一跳 |
+|---|---|---|---|---|---|
+| 1 | `outline.volume` | volume-planner ×1 | `story.md`、作者方向、`knowledge/style/index.md`（文风起点）、题材知识 | `volumes/volume-N.md`（`volume_contract: 1`）+ 分配的 `settings/` | 卷纲 8 字段完整、`writing-style.md` 含基准样章、作者确认 → `outline.act-map` |
+| 2 | `outline.act-map` | act-planner ×1 | 已确认卷纲、设定、`knowledge/plot/act-decomposition.md` | `acts/volume-N-acts.md` | 幕地图覆盖整卷、与卷纲无冲突 → `outline.act` |
+| 3 | `outline.act` | act-planner ×1 | 卷纲、幕地图、项目事实、相邻幕接口 | `acts/vol-N-act-K.md`（11 字段） | start_state 承接上一幕、end_state 可被下一幕承接 → `outline.chapters` |
+| 4 | `outline.chapters` | chapter-planner ×1 | 卷纲、当前幕纲、`knowledge/scene/index.md`（按主导任务）、plot/character 知识、正文入口 | `chapters/vol-N-ch-M.md`（7 字段 + 可选引导）+ 幕级承接快照 `chapters/vol-N-act-K-handoff.md` | 幕内承接顺序复读无冲突 → `prompt.create` |
+| 5 | `prompt.create` | prompt-crafter ×1 | `chapters/vol-N-act-K-handoff.md`（优先）、幕纲、章纲、`settings/context-pack.md`、`settings/writing-style.md` | `prompts/vol-N-ch-M.md`（7 字段，四步转化法）；首任务另写 `settings/context-pack.md` | 每章 Prompt 落盘、顶层逐一读过、自检表无缺口 → 下一批次或 `prompts.ready` |
+
+**知识库方法映射**（规划链按需调用；底座先行、类型叠加，见 `knowledge/index.md`）：
+
+| 步骤 | 底座层方法（怎么写） | 类型层（题材期待） |
+|---|---|---|
+| `outline.volume` | `webnovel/index.md`（连载基线）、`plot/index.md`（冲突/承诺/结构）、`character/index.md`（弧线）、`style/index.md`（文风原型，仅形成阶段） | `genre/index.md`（题材画像叠加） |
+| `outline.act-map` / `outline.act` | `plot/act-decomposition.md`（第零步+六步拆幕、边界信号、验证清单、反模式）、`plot/continuity.md`（幕间承接） | `genre/index.md`（幕形态差异叠加） |
+| `outline.chapters` | `scene/index.md`（按主导任务：dialogue/confrontation/transition/inner-thought/pov/scene-truth）、`plot/index.md`（conflict/hooks/pacing/foreshadowing）、`character/index.md`（decision-engine/arc-continuity） | `genre/index.md`（本幕题材节奏） |
+| `prompt.create` | `scene/self-contained-prompt.md`（自检协议）、`scene/index.md` + `plot/index.md` + `character/index.md`（经 context-pack 压缩入包）、`webnovel/index.md`（fanqie 基线入包） | `genre/index.md`（题材画像经 pack 叠加） |
+
+方法名不写进产物；只写人物选择、事件因果和读者期待（见 `knowledge/index.md` 使用纪律）。
+
 ## 卷纲与设定
 
 volume-planner 一次负责一卷。它从作者提供的故事种子、题材、主角欲望、核心阻力、故事环境和关键规则出发，与作者确认：
@@ -12,13 +35,28 @@ volume-planner 一次负责一卷。它从作者提供的故事种子、题材�
 - 本卷需要兑现或保留的承诺。
 - 本卷事件成立所需的世界、人物、能力、资源、时间、空间和表达设定。
 
-volume-planner 同时负责形成 `settings/writing-style.md`。它按模板中的填写指引，从作者提供的声线样本出发，与作者共同确认基准样章、对照示范、节奏配比和声线禁区。文风文件经作者确认后锁定；后续卷需要微调时，由当卷 volume-planner 提出变更、作者确认，不静默修改。
+卷纲写入 `volumes/volume-N.md`，按 `templates/volumes/volume-N.md` 的字段 schema（`volume_contract: 1`）组织：
+
+```markdown
+## 本卷目标与失败代价
+## 主导驱动力        （五型：悬疑/威胁/目标/关系/信息差，决定整卷节奏）
+## 卷级冲突阶梯      （2-4 层 + 转折点 + 对应幕，逐层加压）
+## 卷级信息差弧线    （起点→终点 + 逐幕推进，谁在何时知道什么）
+## 人物弧线          （选择困境→变化→卷末状态，关系移动）
+## 承诺清单          （兑现 / 保留 / 埋下待收的悬念）
+## 卷末状态          （供下一卷承接的具体状态）
+## 设定需求          （只列会实际影响行动和选择的）
+```
+
+卷纲是驱动引擎不是内容清单：主导驱动力决定节奏，冲突阶梯决定幕序，信息差弧线决定信息流动。字段链对齐——冲突阶梯 → 幕纲 `conflict_development`；信息差弧线 → 幕纲 `start_state`/`end_state` → 章纲 `characters` → Prompt 人物发动机；承诺清单 → 幕纲 `promises` → 章纲 `reader_effect`。已存在旧格式卷纲（缺 schema）时按缺字段回退：冲突阶梯从幕地图反推、信息差弧线从幕纲归纳；不强制全量重写。
+
+volume-planner 同时负责形成 `settings/writing-style.md`。它按模板中的填写指引，从作者提供的声线样本出发，与作者共同确认基准样章、对照示范、节奏配比和声线禁区。**基准样章是文风的硬闸门**：`settings/writing-style.md` 缺基准样章或样章只是占位符/抽象形容词时，不进入下一阶段——volume-planner 先请作者提供一段旧作/参考方向，或针对同一小场景写两种原创短试写让作者选择，再把选择沉淀为项目样章；这是创作确认，不是脚本门禁。文风文件经作者确认后锁定；后续卷需要微调时，由当卷 volume-planner 提出变更、作者确认，不静默修改。
 
 规划阶段还要读取并承接项目的事实接口：`genre-setting.md` 的题材边界、`world-setting.md` 的规则、`character-setting/` 的人物事实、`writing-preferences.md` 的作者确认偏好、`foreshadowing.md` 的伏笔状态和 `timeline.md` 的时间事实。它们只记录会改变后续行动、理解或承接的内容；不能把未发生的正文写成事实。
 
-如果作者暂时没有可用样本，不要把占位符当成文风，也不要用模型默认腔替作者决定。volume-planner 先请作者提供一段旧作/参考方向，或针对同一小场景写两种原创短试写，让作者选出更接近的一种，再把选择沉淀为项目样章；这是创作确认，不是脚本门禁。
+创作知识的消费按知识库两层结构进行（见 `knowledge/index.md`）：**通用写作底座**（webnovel 连载基线、plot/scene/character 方法）回答"怎么写"，跨题材跨卷稳定，规划角色按任务读取；**类型风格知识**（genre 题材画像）回答"这个题材的期待与边界"，按 `genre_id` 叠加在底座之上。规划层只提取当前范围相关的部分，不把知识正文整段复制进产物。
 
-卷纲写入 `volumes/volume-N.md`，本卷需要的设定由顶层明确分配给 volume-planner 一并形成。设定只记录本卷创作会实际使用的事实和作者方向。作者确认卷纲、必要设定和文风后，在 `story.md` 对应卷行将现有 `author_confirmed` 设为 `true`；这是唯一确认事实，cursor 才进入 `outline.acts`。
+本卷需要的设定由顶层明确分配给 volume-planner 一并形成。设定只记录本卷创作会实际使用的事实和作者方向。作者确认卷纲、必要设定和文风后，在 `story.md` 对应卷行将现有 `author_confirmed` 设为 `true`；这是唯一确认事实，cursor 才进入 `outline.acts`。
 
 ## 文风原型调用
 
@@ -64,6 +102,14 @@ chapter-planner 一次处理一幕。它读取卷纲、当前幕纲、相邻幕�
 最终动作或画面，以及下一章需要承接的状态。
 ```
 
+章纲字段的可选引导（兼容旧文件，缺失不强制）：
+
+- **`## key_points`（可选）**：段落级引导，与 `scenes` 的场景级粒度互补。每条 2-3 句笔记体，覆盖 **感官/动作/判断** 三个锚点（人物看见什么、做什么、判断出什么）；条数按目标字数倒推（目标字数 ÷ 500）；对白密集章用 场景/对话/权力 变体（现场、谁在说、谁在试探或施压）。**写法对比**——反例「她走进来，气氛尴尬」，正例「她推门进来，外套上还挂着水珠，先看了一眼桌上的信，才开口要那杯茶」。key_points 是展开引导不是正文预写，不锁定对白原文。
+- **`must_hold` 三清单（可选）**：拆为 `must_resolve`（本章必须闭合）/ `must_hold`（本章承接不变）/ `partial_advance`（部分推进、留待后章）；允许空 `[]`。旧版平铺文本仍被接受。
+- **`characters` 信息差轨迹（可选）**：逐角色列 知道/不知道 清单 + 信息差关系（谁 vs 谁）+ 信息差变化（开场→结尾）。这是 Prompt 人物发动机的「已知/未知/误判」字段的上游依据。
+
+场景知识指引：`scenes` 字段按每场主导任务消费场景写法底座（`knowledge/scene/index.md`）——对白主导读 `dialogue.md`、对抗主导读 `confrontation.md`、转场读 `transition.md`、情绪/内心读 `inner-thought.md`、POV 限知读 `pov.md`、场景现场感读 `scene-truth.md`；只提取当前场需要的判断依据，不把方法名写进章纲。
+
 chapter-planner 顺序复读整幕章纲，确认第一章承接 `start_state`，最后一章交付 `end_state`，人物、信息、能力、资源和唯一事件在幕内连续。
 
 章纲不是把正文预写成事件提要。它应留出人物临场反应、关系中的停顿和自然措辞的空间；只有会改变理解、行动或关系的事实才需要预先锁定。
@@ -72,6 +118,6 @@ chapter-planner 顺序复读整幕章纲，确认第一章承接 `start_state`�
 
 顶层先按幕完成目标写作范围内的章纲，再按幕组织 Prompt 创建。普通长度的幕由一个 prompt-crafter 顺序创建全部单章 Prompt；长幕按连续叙事阶段拆成批次，每个批次由一个 prompt-crafter 创建其中多章 Prompt。
 
-每章仍形成独立的 `prompts/vol-N-ch-M.md`。一个幕或批次完成后继续目标范围内的下一段；全部目标章节的 Prompt 形成后进入 `prompts.ready`，随后可以选择 Fast 或 Full。
+每章仍形成独立的 `prompts/vol-N-ch-M.md`。一个幕或批次完成后继续目标范围内的下一段；全部目标章节的 Prompt 形成后进入 `prompts.ready`，随后可以选择写作模式或编辑模式。
 
 Prompt 审查由用户显式请求触发，不属于规划链的默认步骤。

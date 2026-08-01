@@ -1,6 +1,8 @@
 # 自包含提示词方法论
 
-本文档定义单章 Prompt 的自包含性标准与实现方法。目标是：每一份 `prompts/vol-N-ch-M.md` 交付给 writer 时，writer 不需要任何外部参考即可独立完成本章创作。本文档供 prompt-crafter 使用，与 `skills/prompt.md` 的 Prompt 模板配套。
+> **流程边界标注**：本文件已被 `skills/prompt.md` 与 `skills/context-pack.md` 硬引用为 Prompt 自检协议（五项检查）的权威源，属于**流程规则而非纯知识**。修改本文件会改变 prompt-crafter 的默认创建行为，必须同步核对 `skills/prompt.md`、`skills/context-pack.md`、`templates/settings/context-pack.md` 与 `agents/prompt-crafter.md`；按 `docs/framework-overview.md` 的扩展机制维护。
+
+本文档定义单章 Prompt 的自包含性标准与实现方法。目标是：每一份 `prompts/vol-N-ch-M.md` 交付给 writer 时，writer 不需要任何外部参考即可独立完成本章创作。本文档供 prompt-crafter 使用，与 `skills/prompt.md` 的 Prompt 模板配套；自检协议（五检查）是写完后的检查，`skills/prompt.md` 的「四步转化法」是写的过程，两者衔接。
 
 ## 一、问题定义
 

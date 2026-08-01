@@ -75,7 +75,7 @@ completion.revise
 - `EDIT` 交 completion-editor 输出 task 候选；不得重建核心因果、跨章事实或 Prompt。
 - `REGENERATE`：Prompt 已经成立时，使用原 Prompt 与返修焦点交新 writer；Prompt 设计不足时，先在所在幕或批次中修复受影响 Prompt；规划冲突返回拥有对应产物的 planner。
 
-普通 Full 表达问题仍交 anti-AI；只有显式 `completion.revise` 且问题卡边界清楚时，才交 completion-editor。连续性问题若涉及跨章事实或核心因果，必须升级为 `REGENERATE`，不能由局部编辑器处理。
+普通编辑模式 表达问题仍交 anti-AI；只有显式 `completion.revise` 且问题卡边界清楚时，才交 completion-editor。连续性问题若涉及跨章事实或核心因果，必须升级为 `REGENERATE`，不能由局部编辑器处理。
 completion-editor 与 anti-AI 的共同禁止边界以 `skills/edit-boundary.md` 为唯一权威源，本文件只定义完本分流。
 
 返修只处理正文已经证明的问题。候选收齐后，completion-reviewer 重新顺序阅读整个受影响范围，重新判断人物、因果、节奏和阅读体验；不能只核对原问题卡。全部返修后再做一次全书承接复读，发现新问题回到最早受影响位置。

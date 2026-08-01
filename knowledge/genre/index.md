@@ -29,6 +29,7 @@
 | `scifi-apocalypse` | 科幻末世 | - |
 | `western-fantasy` | 西方奇幻 | - |
 | `war-god` | 战神归来 | `urban` |
+| `era-rebirth` | 年代重生 | `urban` |
 | `derivative` | 同人衍生 | - |
 | `anime-derivative` | 动漫衍生 | `derivative` |
 | `male-derivative` | 男频衍生 | `derivative` |
@@ -54,8 +55,7 @@
 题材画像只给期待、约束和差异，不给固定章型或情节案例。planner 必须从当前人物、
 卷目标和资源关系推导事件，不能把题材文件当桥段库。
 
-连载向项目默认叠加 `knowledge/webnovel/fanqie-baseline.md`（与具体 genre_id
-正交，不是新的题材编号）。题材画像只改读者期待、节奏、世界逻辑与表达选择，
+通用写作底座 `knowledge/webnovel/index.md`（含 `fanqie-baseline.md`）对任何题材、任何卷自动叠加，与具体 genre_id 正交，不是新的题材编号；题材画像只叠加差异化，不重复底座规则。题材画像只改读者期待、节奏、世界逻辑与表达选择，
 不替作者决定剧情，不做字段门禁。
 
 ## 与 anti-ai/genre/ 的关系

@@ -9,7 +9,11 @@ sys.dont_write_bytecode = True
 
 
 def read_text(path):
-    return Path(path).read_text(encoding="utf-8", errors="ignore")
+    path = Path(path)
+    try:
+        return path.read_text(encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        raise SystemExit(f"文件不是有效的 UTF-8，请先修复编码：{path} ({exc})")
 
 
 def is_relative_to(path, parent):

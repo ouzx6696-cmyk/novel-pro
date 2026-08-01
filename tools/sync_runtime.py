@@ -37,7 +37,11 @@ REQUIRED_MIGRATION_FIELDS = (
 
 
 def read_text(path):
-    return Path(path).read_text(encoding="utf-8", errors="ignore")
+    path = Path(path)
+    try:
+        return path.read_text(encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        raise SystemExit(f"文件不是有效的 UTF-8，请先修复编码：{path} ({exc})")
 
 
 def is_relative_to(path, parent):
@@ -151,6 +155,16 @@ def rewrite_runtime_paths(content):
     content = re.sub(
         r"(?<![A-Za-z0-9_./-])templates/runtime/",
         ".claude/skill-resources/templates/",
+        content,
+    )
+    content = re.sub(
+        r"(?<![A-Za-z0-9_./-])templates/volumes/",
+        ".claude/skill-resources/templates/volumes/",
+        content,
+    )
+    content = re.sub(
+        r"(?<![A-Za-z0-9_./-])templates/TASKS\.md",
+        ".claude/skill-resources/templates/TASKS.md",
         content,
     )
     return content

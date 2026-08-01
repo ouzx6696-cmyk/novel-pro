@@ -1,7 +1,6 @@
 # 都市修真
 
-父题材：`urban-brained`；力量体系同时参考 `xianxia`。先读父题材与参考题材；连载向
-默认叠加 `knowledge/webnovel/fanqie-baseline.md`，再读本文件差异。
+父题材：`urban-brained`；力量体系同时参考 `xianxia`。先读父题材与参考题材；通用底座自动叠加（见 webnovel/index.md），再读本文件差异。
 
 - **读者期待**：修真规则与现代秩序碰撞，不是仙侠换皮都市。
 - **执行**：力量使用考虑监控、法律、资源来源与普通人认知边界。

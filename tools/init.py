@@ -37,6 +37,10 @@ REQUIRED_SOURCE_FILES = (
     Path("templates/settings/writing-preferences.md"),
     Path("templates/settings/foreshadowing.md"),
     Path("templates/settings/timeline.md"),
+    Path("templates/settings/context-pack.md"),
+    Path("templates/runtime/novel-base.md"),
+    Path("templates/volumes/volume-N.md"),
+    Path("templates/TASKS.md"),
     Path("knowledge/index.md"),
     Path("knowledge/webnovel/index.md"),
     Path("knowledge/genre/index.md"),
@@ -47,12 +51,13 @@ REQUIRED_SOURCE_FILES = (
 )
 
 DEFAULT_GENRES = [
-    "xianxia", "xuanhuan", "urban", "urban-romance", "urban-farming",
-    "urban-brained", "suspense-crime", "suspense-brained", "historical",
-    "historical-brained", "ancient-politics", "anti-japanese-war",
-    "scifi-apocalypse", "western-fantasy", "war-god", "derivative",
-    "male-derivative", "game-sports", "urban-daily", "urban-cultivation",
-    "urban-high-martial", "suspense-paranormal", "anime-derivative",
+    "xianxia", "xuanhuan", "xuanhuan-brained", "urban", "urban-daily",
+    "urban-romance", "urban-farming", "urban-brained", "urban-cultivation",
+    "urban-high-martial", "suspense-crime", "suspense-paranormal",
+    "suspense-brained", "historical", "historical-brained",
+    "ancient-politics", "anti-japanese-war", "scifi-apocalypse",
+    "western-fantasy", "war-god", "era-rebirth", "derivative",
+    "anime-derivative", "male-derivative", "game-sports",
 ]
 
 
@@ -216,6 +221,16 @@ def rewrite_runtime_paths(content):
     content = re.sub(
         r"(?<![A-Za-z0-9_./-])templates/runtime/",
         ".claude/skill-resources/templates/",
+        content,
+    )
+    content = re.sub(
+        r"(?<![A-Za-z0-9_./-])templates/volumes/",
+        ".claude/skill-resources/templates/volumes/",
+        content,
+    )
+    content = re.sub(
+        r"(?<![A-Za-z0-9_./-])templates/TASKS\.md",
+        ".claude/skill-resources/templates/TASKS.md",
         content,
     )
     return content

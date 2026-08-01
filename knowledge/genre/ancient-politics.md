@@ -1,7 +1,6 @@
 # 古代权谋
 
-父题材：`historical`。先读父题材；连载向默认叠加
-`knowledge/webnovel/fanqie-baseline.md`，再读本文件差异。
+父题材：`historical`。先读父题材；通用底座自动叠加（见 webnovel/index.md），再读本文件差异。
 
 - 差异期待：权力来自职位、信息、名分、关系和可兑现资源。
 - 节奏：表面行动与真实目的错位，每次试探改变站队或暴露风险。

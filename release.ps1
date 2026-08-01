@@ -28,7 +28,7 @@ if ($LASTEXITCODE -ne 0) {
 
 # 2. Read version from skill.json
 $skillJsonPath = Join-Path $SkillDir "skill.json"
-$Version = "0.2.2-pro"
+$Version = "0.2.3-pro"
 if (Test-Path $skillJsonPath) {
     try {
         $meta = Get-Content $skillJsonPath -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -57,7 +57,7 @@ if (-not (Test-Path $DistDir)) {
 $TempDir = Join-Path $env:TEMP ("novel-pro-pack-" + [guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Path $TempDir | Out-Null
 
-$excludeDirs = @(".git", "__pycache__", ".idea", ".vscode", "dist")
+$excludeDirs = @(".git", "__pycache__", ".idea", ".vscode", "dist", ".workbuddy")
 $excludeFiles = @(".gitignore", "release.bat", "release.ps1")
 
 Write-Host "[1/4] Copying release files..."
@@ -116,11 +116,12 @@ if ($LASTEXITCODE -ne 0) {
 Chinese long-form novel writing Skill package.
 
 ### Includes
-- 14 skill modules + 11 agents
-- 15 operation dispatch cards (single source of truth)
-- Context Pack knowledge compression
-- Full loop: plan -> prompt -> write -> cold-read -> commit
+- 14 skill modules + 12 agents
+- 17 operation dispatch cards (single source of truth)
+- Context Pack knowledge compression (通用写作底座 + 类型风格知识两层)
+- 写作模式（write.draft 草稿）+ 编辑模式（Reader 冷读 + Anti-AI 扫描 + 整体返修裁决 + 提交）
 - Version gate + migration support
+- 25 题材（含年代重生 era-rebirth）
 
 ### Install
 1. Download ``$ZipName`` and extract

@@ -1,7 +1,6 @@
 # 玄幻脑洞
 
-父题材：`xuanhuan`。先读父题材；连载向默认叠加
-`knowledge/webnovel/fanqie-baseline.md`，再读本文件差异：
+父题材：`xuanhuan`。先读父题材；通用底座自动叠加（见 webnovel/index.md），再读本文件差异：
 
 - **读者期待**：奇想规则的新玩法与试错爽感。
 - **节奏**：规则第一次兑现要有可观察后果；解释服务当下冲突。

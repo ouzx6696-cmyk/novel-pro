@@ -1,7 +1,6 @@
 # 抗战谍战
 
-父题材：`historical`。先读父题材；连载向默认叠加
-`knowledge/webnovel/fanqie-baseline.md`，再读本文件差异。
+父题材：`historical`。先读父题材；通用底座自动叠加（见 webnovel/index.md），再读本文件差异。
 
 - 差异期待：任务压力、身份风险、组织纪律和普通人的生存共同存在。
 - 执行：情报有来源、传递有成本，人物选择受时代和立场约束。

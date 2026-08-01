@@ -1,7 +1,7 @@
 {
   "name": "novel-pro",
-  "version": "0.2.2-pro",
-  "description": "novel-pro v0.2 中文长篇小说创作 Skill，是可独立运行的文学内核：题材初始化、卷幕章规划、单章 Prompt 与 writer、Fast 草稿、Full Reader 冷读返修、显式 Prompt 审查、完本质检与整卷对齐。Novel Desk 仅通过项目根目录 TASKS.md 交接作者请求；Agent 先汇总 pending 范围与 Skill 路径、等待作者确认，再按既有流程执行并回写结果。仅直接支持 runtime_profile: novel-pro-0.2；旧项目必须完整迁移。",
+  "version": "0.2.3-pro",
+  "description": "novel-pro 中文长篇小说创作 Skill，是可独立运行的文学内核：题材初始化、卷幕章规划、单章 Prompt 与 writer、写作模式草稿、编辑模式（Reader 冷读 + Anti-AI 全量扫描 + 整体返修裁决）返修、显式 Prompt 审查、完本质检与整卷对齐。与 Novel Desk 协作时，只通过项目根目录 TASKS.md 交接作者请求；先汇总 pending 范围与 Skill 路径、等待作者确认，再按既有流程执行并回写结果。仅支持当前 runtime_profile: novel-pro-0.2；旧项目必须完整迁移。",
   "author": {
     "name": "ouzx6696-cmyk",
     "url": "https://github.com/ouzx6696-cmyk"
@@ -24,7 +24,8 @@
     "completion-review",
     "full-book-revision",
     "revision-triage",
-    "fast-mode",
+    "writing-mode",
+    "editing-mode",
     "anti-ai",
     "novel-desk",
     "tasks-md",

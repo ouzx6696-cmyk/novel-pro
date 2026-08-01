@@ -1,7 +1,6 @@
 # 历史脑洞
 
-父题材：`historical`。先读父题材；连载向默认叠加
-`knowledge/webnovel/fanqie-baseline.md`，再读本文件差异。
+父题材：`historical`。先读父题材；通用底座自动叠加（见 webnovel/index.md），再读本文件差异。
 
 - 差异期待：新技术或新认知如何通过旧制度落地并产生反作用。
 - 执行：写清材料、组织、利益分配和传播过程，不只写发明结果。

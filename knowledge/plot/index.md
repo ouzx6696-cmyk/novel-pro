@@ -11,7 +11,7 @@
 | 幕与全卷出现断层、重复推进或人物状态漂移 | `continuity.md` |
 | 连续章节强弱失衡、高潮透支或长期平淡 | `pacing.md` |
 | 伏笔只埋不收、提前泄底或兑现没有后果 | `foreshadowing.md` |
-| 已确认卷纲需要按剧情阶段划分执行单元 | `act-structure.md` |
+| 已确认卷纲需要按剧情阶段划分执行单元、卷内分幕的操作原则 | `act-decomposition.md`（第零步「卷内分幕的操作原则」） |
 | 有了卷纲但不知道怎么拆成幕、幕边界在哪里、怎么验证 | `act-decomposition.md` |
 
 volume-planner 用它设计卷级变化；act-planner 用它划分幕边界与幕间节奏；

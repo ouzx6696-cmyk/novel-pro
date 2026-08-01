@@ -1,7 +1,6 @@
 # 都市高武
 
-父题材：`urban-brained`；力量体系同时参考 `xuanhuan`。先读父题材与参考题材；连载向
-默认叠加 `knowledge/webnovel/fanqie-baseline.md`，再读本文件差异。
+父题材：`urban-brained`；力量体系同时参考 `xuanhuan`。先读父题材与参考题材；通用底座自动叠加（见 webnovel/index.md），再读本文件差异。
 
 - **读者期待**：训练、考试、资源与阶层围绕武力形成制度。
 - **节奏**：比武/冲突有策略与代价；升级改变机会与身份压力。

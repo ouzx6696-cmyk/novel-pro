@@ -1,7 +1,6 @@
 # 动漫衍生
 
-父题材：`derivative`。先读父题材；连载向默认叠加
-`knowledge/webnovel/fanqie-baseline.md`，再读本文件差异。
+父题材：`derivative`。先读父题材；通用底座自动叠加（见 webnovel/index.md），再读本文件差异。
 
 - 差异期待：视觉化能力、战斗节奏和角色标志性语气保持原作辨识度。
 - 执行：把动画表现转换为小说中的感知、空间和策略，不逐镜头复述。

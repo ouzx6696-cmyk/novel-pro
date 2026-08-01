@@ -10,6 +10,7 @@ AGENT_FILES = [
     "chapter-planner.md",
     "completion-editor.md",
     "completion-reviewer.md",
+    "edit-synthesizer.md",
     "novel-agent.md",
     "prompt-crafter.md",
     "prompt-reviewer.md",
@@ -19,6 +20,11 @@ AGENT_FILES = [
 ]
 
 TEMPLATE_FILES = ["novel-base.md"]
+
+SUBDIR_TEMPLATE_FILES = {
+    "volumes": ["volume-N.md"],
+    ".": ["TASKS.md"],
+}
 
 SKILL_FILES = [
     "act-planning.md",
@@ -71,6 +77,10 @@ def runtime_entries(skill_root):
         yield source, knowledge_target(name), "knowledge"
     for name in TEMPLATE_FILES:
         yield skill_root / "templates" / "runtime" / name, template_target(name), "template"
+    for subdir, names in SUBDIR_TEMPLATE_FILES.items():
+        for name in names:
+            rel = Path(subdir) / name
+            yield skill_root / "templates" / rel, template_target(rel.as_posix()), "template"
     for name in PROJECT_TOOL_FILES:
         yield skill_root / "tools" / name, tool_target(name), "tool"
 

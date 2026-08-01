@@ -1,7 +1,6 @@
 # 悬疑灵异
 
-父题材：`suspense-crime`。先读父题材；连载向默认叠加
-`knowledge/webnovel/fanqie-baseline.md`，再读本文件差异。
+父题材：`suspense-crime`。先读父题材；通用底座自动叠加（见 webnovel/index.md），再读本文件差异。
 
 - 差异期待：异常有稳定规则，恐惧来自人物逐步确认规则和代价。
 - 执行：线索同时支持现实解释与异常解释，直到事件迫使人物选择。

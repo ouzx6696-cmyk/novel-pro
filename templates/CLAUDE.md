@@ -12,7 +12,7 @@
 → 章纲
 → 按幕或连续批次创建单章 Prompt
 → prompts.ready
-→ Fast 或 Full
+→ 写作模式或编辑模式
 ```
 
 长期状态与临时操作严格分开：`outline.acts` 是 `status.yaml` 的长期阶段，`outline.act-map` 和 `outline.act` 是其中的 `order.yaml` operation；`prompt.review`、`completion.inspect`、`completion.revise` 和 `alignment` 是不改变长期 cursor 的旁路任务。
@@ -29,17 +29,17 @@ python tools/migrate.py <旧项目> <新项目>
 
 Prompt 创建任务处理一幕或一个连续批次，范围内每章分别写入 `prompts/vol-N-ch-M.md`。创建前必须确认 `story.md` 目标卷的现有 `author_confirmed: true`；缺失或为 `false` 时只请求作者确认，不写 Prompt。长期目标范围内的 Prompt 全部形成后才进入 `prompts.ready`。用户明确要求审核提示词时，顶层才创建 prompt-reviewer。
 
-进入 Fast 或 Full 写作时，顶层读取 `.claude/skill-resources/templates/novel-base.md`，为每章构造 writer base，再创建独立 writer 并交付该章 Prompt。
+进入写作模式或编辑模式写作时，顶层读取 `.claude/skill-resources/templates/novel-base.md`，为每章构造 writer base，再创建独立 writer 并交付该章 Prompt。
 
-Fast 批量形成未经 Reader 文学验收的 `drafts/`；顶层仍阅读实际文字，但不进入 Full Reader、表达编辑和 `texts/` 提交链。全部目标完成后进入 `drafts.ready`。
+写作模式批量形成未经 Reader 文学验收的 `drafts/`；顶层仍阅读实际文字，但不进入编辑模式 Reader、表达编辑和 `texts/` 提交链。全部目标完成后进入 `drafts.ready`。
 
-Full 按下面的顺序运行：
+编辑模式按下面的顺序运行：
 
 ```text
-full.write → full.review → full.repair → full.commit
+edit.write → edit.review（Reader 按幕冷读）→ edit.anti-ai（Anti-AI 全量扫描同批章节）→ edit.synthesize（整体返修裁决）→ edit.repair（按意见整体返修）→ edit.commit
 ```
 
-Reader 按幕冷读正文，返修后重新顺序阅读受影响范围，接受正文写入 `texts/`。
+Reader 按幕冷读正文，anti-ai 随后全量扫描同批章节出 Anti-AI 报告（不动文）；edit-synthesizer 综合两份报告给出整体返修意见；`edit.repair` 据此整体返修，返修后重新顺序阅读受影响范围，接受正文写入 `texts/`。
 
 项目设定的消费者是固定的：规划角色读取题材、世界、人物、作者偏好、伏笔和时间线；prompt-crafter 按章提取事实写入 Prompt；writer 只读取 writer base 与 Prompt；Reader 首读后才为真实问题追查设定。文风原型只由 volume-planner 在形成项目文风时读取，确认后的 `settings/writing-style.md` 是唯一下游来源。
 

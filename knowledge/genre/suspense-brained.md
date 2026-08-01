@@ -1,7 +1,6 @@
 # 悬疑脑洞
 
-父题材：`suspense-crime`。先读父题材；连载向默认叠加
-`knowledge/webnovel/fanqie-baseline.md`，再读本文件差异。
+父题材：`suspense-crime`。先读父题材；通用底座自动叠加（见 webnovel/index.md），再读本文件差异。
 
 - 差异期待：新规则本身构成谜面，破解依赖试错和边界发现。
 - 执行：每次试验付出代价并排除一种解释，对手也能学习规则。
