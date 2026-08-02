@@ -2,7 +2,6 @@
 volume_contract: 1
 volume: {N}
 genre_id: {题材编号}
-author_confirmed: false
 ---
 
 # 卷 {N} 卷纲

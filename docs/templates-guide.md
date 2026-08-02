@@ -45,11 +45,7 @@ texts/vol-N-ch-M.md (正文)
 
 ### 模板元信息
 
-所有模板都包含：
-- `template_version`：模板版本号
-- `required_fields`：必填字段
-- `optional_fields`：可选字段
-- `description`：模板用途说明
+核心规划模板（story/CLAUDE/TASKS/卷纲/幕纲/章纲/人物卡）含 YAML frontmatter 元信息（`template_version`、`required_fields`、`optional_fields` 等，各模板以实际字段为准）；`settings/` 下的写作辅助模板（genre-setting/world-setting/writing-style/writing-preferences/foreshadowing/timeline）为无 frontmatter 的正文模板。字段的权威定义以 `skills/planning.md`、`skills/act-planning.md`、`skills/prompt.md` 与各模板内「填写说明」为准。
 
 ---
 
@@ -141,11 +137,8 @@ A: 问自己三个问题：
 
 ##### 本卷目标与失败代价
 ```markdown
-## 本卷目标
-主角在本卷要达成什么：{具体目标}
-
-## 失败代价
-如果本卷失败，最坏会怎样：{具体后果}
+## 本卷目标与失败代价
+本卷必须完成的变化：{一句话目标}；若不完成会失去什么、代价由谁承担：{具体后果}
 ```
 
 - ✅ 正确：通过外门考核进入内门 / 家族会被除名
@@ -256,9 +249,9 @@ A: 详细到act-planner能据此拆幕。如果拆不出来，说明还不够具
 
 | 字段 | 对应卷纲字段 | 对应章纲字段 |
 |---|---|---|
-| conflict_development | 冲突阶梯某一级 | 章目标与阻力 |
-| information | 卷级信息差弧线某段 | 章内信息差 |
-| character_arcs | 人物弧线某段 | 章内人物状态 |
+| conflict_development | 冲突阶梯某一级 | 章 `conflict` |
+| information | 卷级信息差弧线某段 | 章 `characters` 的信息差轨迹 |
+| character_arcs | 人物弧线某段 | 章 `characters` 的人物状态 |
 
 ---
 

@@ -41,6 +41,8 @@ REQUIRED_SOURCE_FILES = (
     Path("templates/runtime/novel-base.md"),
     Path("templates/volumes/volume-N.md"),
     Path("templates/acts/vol-N-act-K.md"),
+    Path("templates/acts/volume-N-acts.md"),
+    Path("templates/chapters/vol-N-ch-M.md"),
     Path("templates/characters/character-profile.md"),
     Path("templates/TASKS.md"),
     Path("knowledge/index.md"),
@@ -181,10 +183,9 @@ def deploy_project_files(project_path, genre, project_name):
         SKILL_HOME / "templates/settings/writing-preferences.md",
         project_path / "settings/writing-preferences.md",
     )
-    copy_if_missing(
-        SKILL_HOME / "templates/settings/context-pack.md",
-        project_path / "settings/context-pack.md",
-    )
+    pack_text = template_text("settings/context-pack.md")
+    pack_text = pack_text.replace("{题材编号}", genre).replace("{父题材或空}", "")
+    write_if_missing(project_path / "settings/context-pack.md", pack_text)
     write_if_missing(project_path / "settings/character-setting/.gitkeep", "")
 
     write_if_missing(

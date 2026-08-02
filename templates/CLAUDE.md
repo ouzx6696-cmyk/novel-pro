@@ -66,7 +66,8 @@ prompts.ready（所有 Prompt 形成）
 - 缺少 `runtime_profile` 字段
 - `runtime_profile` 不是 `novel-pro-0.2`
 - `.agent/status.yaml` 缺少完整 `migration` 节点
-- `cursor.step` 为 `migration.review`（迁移尚未完成）
+
+`cursor.step: migration.review` 表示迁移目标尚未 finalize：此时只允许阅读 `.migration/report.md`、处理迁移操作和等待作者确认，不得推进创作阶段或运行 `sync_runtime.py`。
 
 ### 迁移流程
 

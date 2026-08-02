@@ -1,1 +1,20 @@
+# run-log：重大失败、中断、重写和作者决策的持久记录。
+# 由 novel-agent 独占维护；条目只记影响后续创作的事实，不记日常进度。
+# 条目字段：
+#   - id:         唯一标识（task 或阶段 + 序号，如 "vol-1-act-2-recovery-1"）
+#   - at:         ISO 8601 时间戳
+#   - kind:       失败 / 中断 / 重写 / 作者决策
+#   - task:       关联的 order.operation 与范围（如 "edit.repair vol-1-act-2"）
+#   - reason:     根因（正文/规划/Prompt/状态的具体问题）
+#   - decision:   采取的动作与恢复入口（重派角色 / 修复来源 / 作者确认等）
+#   - impact:     对后续创作的影响（锁定事实、重读范围、状态调整）
 runs: []
+# 示例条目：
+# runs:
+#   - id: vol-1-act-1-recovery-1
+#     at: 2026-08-02T20:00:00+08:00
+#     kind: 中断
+#     task: edit.repair vol-1-act-1
+#     reason: 复读发现第 3 章结尾未落在收束画面，返修被中断
+#     decision: 从受影响范围开头重新顺序复读，修复后重读该章
+#     impact: 该幕未提交，texts/ 无新增；下一轮从 edit.repair 恢复

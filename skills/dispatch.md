@@ -73,7 +73,7 @@
 - 允许写入：`volumes/volume-N.md`（按 `templates/volumes/volume-N.md` 字段 schema，`volume_contract: 1`）；本卷任务明确分配的 `settings/` 与人物设定
 - 返回顶层：卷纲（含主导驱动力/冲突阶梯/信息差弧线等驱动字段）、事实缺口、作者确认项
 - 完成判定：卷纲 contract 字段完整、`settings/writing-style.md` 已含基准样章（缺样章不进下一阶段）、设定和文风交作者确认
-- 下一跳：`outline.acts`
+- 下一跳：`outline.act-map`
 - 恢复入口：重读现有卷纲与设定，只补缺失或冲突项
 
 ### outline.act-map

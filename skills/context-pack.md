@@ -17,7 +17,7 @@
 
 1. **底座层（必选，跨题材）**：读取 `knowledge/webnovel/index.md`（连载基线，含 `fanqie-baseline.md`）、`knowledge/scene/index.md`（含自包含提示词方法 `self-contained-prompt.md`）、`knowledge/plot/index.md`（冲突/钩子/节奏/伏笔等本卷用得到的剧情方法；**不含幕拆解方法 `act-decomposition.md`**——那是 act-planner 的拆幕方法，prompt-crafter 不拆幕，不进包）、`knowledge/character/index.md`；按本卷叙事重心从 scene/plot/character 选择子文件（见下方「建包子文件选择清单」）。
 2. **类型层（叠加，按题材）**：读取 `knowledge/genre/index.md`（+父题材速写）与 `settings/genre-setting.md` 的已确认题材期待，叠加当前 `genre_id` 的题材画像。
-3. 把底座方法与题材差异裁剪压缩为 8 节（读者与节奏基线、题材执行要点、冲突钩点节奏、场景写法工具箱[按场景性质分条索引，含自包含提示词方法]、人物决策与对手压力、文风提取接口[全章基调 + 逐场落点两层提取]、禁用与边界、使用纪律）。
+3. 把底座方法与题材差异裁剪压缩为 8 节（读者与节奏基线、题材执行要点、冲突、钩点与节奏方法、场景写法工具箱[按场景性质分条索引，含自包含提示词方法]、人物决策与对手压力、文风提取接口[全章基调 + 逐场落点两层提取]、禁用与边界、使用纪律）。
 4. 写入 `settings/context-pack.md`，头部 frontmatter 记录 `pack_contract`、`volume`、`genre_id`、`parent_genre`、`formed_by`、`sources`、`style_pointer`。
 5. 继续完成本任务范围的章级 Prompt（同一任务内，不新增 operation）。
 

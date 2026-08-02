@@ -43,9 +43,8 @@ python tools/migrate.py cleanup <新项目> --confirm
 ```text
 migration.review
 → 阅读 .migration/report.md
-→ migration.state=complete（finalize）
+→ migration.state=complete（finalize；finalize 同时把 cursor.step 恢复为 resume_step）
 → migration.cleanup=complete（cleanup --confirm）
-→ cursor.step 恢复为 resume_step
 ```
 
 迁移阶段不得直接写正文、推进规划或调用 `sync_runtime.py`。如果报告存在缺失内容或未映射文件，先交给作者决定如何补齐，再继续创作。

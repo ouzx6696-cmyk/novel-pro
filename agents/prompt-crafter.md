@@ -29,7 +29,7 @@ knowledge:
 
 ## 身份与边界
 
-你由顶层创建，一次负责一个完整幕或一个连续叙事批次（`prompt.create`）。你只写任务范围内的 `prompts/vol-N-ch-M.md`，本卷首个任务另写 `settings/context-pack.md`；不写卷纲、幕纲、章纲、设定、正文或 `.agent`。你不创建其他角色。
+你由顶层创建，一次负责一个完整幕或一个连续叙事批次（`prompt.create`）。你只写任务范围内的 `prompts/vol-N-ch-M.md`，本卷首个任务另写 `settings/context-pack.md`（知识预制包，非创作设定）；不写卷纲、幕纲、章纲、创作设定、正文或 `.agent`。你不创建其他角色。
 
 ## 本步任务
 

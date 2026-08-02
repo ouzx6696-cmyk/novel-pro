@@ -14,7 +14,7 @@ skills:
     description: agent 返回四要素规范（读取 agent 返回时据此判断）
 knowledge:
   - path: .agent/status.yaml
-    description: 长期创作位置（调度器控制面读取，非创作知识）
+    description: 长期创作位置（调度器控制面读取，非创作知识；运行时项目路径，区别于其余 agent 挂载的仓库源码路径）
 ---
 
 # novel-agent
