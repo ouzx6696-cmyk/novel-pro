@@ -20,7 +20,7 @@
 | 1 | `write.draft` | writer ×N（每章独立） | 单章 base（顶层构造）+ 目标 Prompt | `drafts/vol-N-ch-M.md` | writer 窗口完成 | 步骤 2 |
 | 2 | —（顶层阅读） | 顶层 | 全部 `drafts/` | — | 阅读信号清单：接受 / 同一 Prompt 重派 / 回退 | `drafts.ready`、重派或 `prompt.create` |
 
-构造单章 base 的步骤（每章一次，在创建 writer 之前）：读 `templates/runtime/novel-base.md` 第一部分获得构造方法 → 核对目标 Prompt「本章质感」是可执行的声线材料（空泛或文风未确认则按 `skills/prompt.md` 缺口规则返回，不构造 base）→ 按第二部分模板填「当前任务」节（mode/chapter/prompt/output/repair_focus）→ 其余通用节按模板原样保留 → base 与 Prompt 共同交付 writer。**质感不写入 base**，本章声线以 Prompt「本章质感」为唯一指令源。
+构造单章 base 的步骤（每章一次，在创建 writer 之前）：读 `templates/runtime/novel-base.md` 第一部分获得构造方法 → 核对目标 Prompt「本章故事」叙述能示范项目声线且各场「本场声线」是可执行的落点（声线空泛或文风未确认则按 `skills/prompt.md` 缺口规则返回，不构造 base）→ 按第二部分模板填「当前任务」节（mode/chapter/prompt/output/repair_focus）→ 其余通用节按模板原样保留 → base 与 Prompt 共同交付 writer。**叙述示范与声线落点不写入 base**，本章声线以 Prompt 内承载的声线材料（叙述示范 + 各场声线落点；contract-2 以「本章质感」为准）为唯一指令源。
 
 ### 编辑模式执行链路（edit.write → edit.commit）
 

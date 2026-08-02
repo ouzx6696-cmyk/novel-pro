@@ -1,7 +1,7 @@
 ---
 name: novel-pro
 version: "0.2.3-pro"
-description: "novel-pro 中文长篇小说创作 Skill，是可独立运行的文学内核：题材初始化、卷幕章规划、单章 Prompt 与 writer、写作模式草稿、编辑模式（Reader 冷读 + Anti-AI 全量扫描 + 整体返修裁决）返修、显式 Prompt 审查、完本质检与整卷对齐。与 Novel Desk 协作时，只通过项目根目录 TASKS.md 交接作者请求；先汇总 pending 范围与 Skill 路径、等待作者确认，再按既有流程执行并回写结果。仅支持当前 runtime_profile: novel-pro-0.2；旧项目必须完整迁移。"
+description: "novel-pro 中文长篇小说创作 Skill，独立运行的文学内核。用于完整长篇创作流程：题材初始化与旧项目迁移、卷幕章规划、单章自包含 Prompt 与独立 writer 写作、写作模式草稿、编辑模式（Reader 冷读 + Anti-AI 全量扫描 + 整体返修裁决）返修、显式 Prompt 审查、完本质检与整卷对齐。当用户要求新建或继续中文长篇项目、规划卷幕章、创建单章 Prompt、写作或返修章节、完本评估，或通过项目根 TASKS.md 与 Novel Desk 交接任务时使用。仅支持 runtime_profile: novel-pro-0.2；旧版项目必须先完整迁移。"
 agent_created: true
 ---
 
@@ -34,7 +34,7 @@ Desk 存在时，项目根目录 `TASKS.md` 是唯一的作者到 Agent 外壳�
 python tools/migrate.py <旧项目> <新项目>
 ```
 
-迁移会在新目录重新初始化当前项目，搬运故事、设定、规划、Prompt、草稿和正文，写入 `.migration/report.md` 与机器可读报告，并列出已完成文件、新版缺失内容文件、未映射旧文件和可清理旧运行时文件。旧项目创建阶段保持不变。作者核对报告后运行 `finalize`，再按报告运行 `cleanup --confirm`；清理不删除正文、规划、设定、任务历史或未映射文件。
+迁移会在新目录重新初始化当前项目，搬运故事、设定、规划、Prompt、草稿和正文，写入 `.migration/report.md` 与机器可读报告，并列出已完成文件、新版缺失内容文件、未映射旧文件和可清理旧运行时文件。旧项目创建阶段保持不变。作者核对报告后运行 `finalize <新项目>`，再按报告运行 `cleanup <新项目> --confirm`；清理不删除正文、规划、设定、任务历史或未映射文件。
 
 ## 创作主线
 
@@ -80,7 +80,7 @@ python tools/migrate.py <旧项目> <新项目>
 
 prompt-crafter 先读取目标卷 `story.md` 的 `author_confirmed`。缺失或为 `false` 时返回作者确认需求，不创建 Prompt。确认后从当前幕纲、任务范围内的章纲、有效承接、人物设定、项目文风、作者偏好、伏笔、时间线、题材和相关创作知识建立完整理解，再顺序写出范围内每章的 `prompts/vol-N-ch-M.md`。
 
-每份 Prompt 把章纲转成人物可以执行的行动过程：目标、筹码、阻力、策略、反制、转折、选择、后果和下一步触发。文风与题材在创建阶段转化为本章的表达材料；下游只使用项目 `settings/writing-style.md`，不直接读取文风原型。
+每份 Prompt 是章纲转成的叙述型自包含生成包（四节）：本章故事（含承接收束）、人物动机与情绪（起点/施压点/落点递进）、场景展开（每场含场景叙述/行动脉络/本场怎么写/本场声线）、必守事实与边界；声线与技法逐场溶解。文风与题材在创建阶段转化为叙述示范与逐场声线落点；下游只使用项目 `settings/writing-style.md`，不直接读取文风原型。
 
 普通幕由一个 prompt-crafter 创建全部 Prompt。长幕按叙事子阶段切成连续批次，每个批次创建多章独立 Prompt。长期目标范围内的 Prompt 全部完成后进入 `prompts.ready`。
 
@@ -94,7 +94,7 @@ Prompt 审查是按需能力，不参与 `prompts.ready` 的形成，也不作�
 
 `templates/runtime/novel-base.md` 是主代理构造 writer 子代理的模板，分两部分：**第一部分是主代理构造指南**（base 是什么、何时构造、怎么构造、纪律），**第二部分是单章 base 参考模板**。进入 写作、编辑模式 首稿或内容返修时，主代理先读第一部分获得构造方法，再按第二部分模板结合目标章节、任务模式、Prompt、输出位置和明确的返修焦点写成单章 writer base。
 
-base 与 Prompt 职责严格分开：**base 提供通用写作框架**（身份、写作方式、真实展开、展开工具箱、项目级声线禁区、交付），**Prompt 提供本章专属内容**（承接、人物、场景、本章质感）。base 不复制 Prompt 的章节内容与质感；本章声线以 Prompt「本章质感」为唯一指令源。主代理构造时对 Prompt 质感做核对，空泛时返回缺口。
+base 与 Prompt 职责严格分开：**base 提供通用写作框架**（身份、写作方式、真实展开、展开工具箱、项目级声线禁区、交付），**Prompt 提供本章专属内容**（本章故事、人物动机与情绪、场景展开、必守事实与边界）。base 不复制 Prompt 的章节内容与声线材料；本章声线以 Prompt 内承载的声线材料（「本章故事」叙述示范 + 各场「本场声线」落点）为唯一指令源。主代理构造时对 Prompt 声线做核对，空泛时返回缺口。
 
 主代理使用这份 base 创建独立 writer，并交付一个目标 Prompt。writer 的完整创作上下文由单章 base 与单章 Prompt 组成。
 

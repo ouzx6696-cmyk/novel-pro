@@ -290,9 +290,9 @@
 → `tools/migrate.py create`
 → 新项目 `cursor.step: migration.review`
 → 阅读 `.migration/report.md` 并由作者确认
-→ `tools/migrate.py finalize`
+→ `tools/migrate.py finalize <新项目>`
 → 恢复 `migration.resume_step`
-→ 可选 `cleanup --confirm`
+→ 可选 `cleanup <新项目> --confirm`
 ```
 
 迁移期间不创建规划、Prompt、writer 或 Reader，不运行同步；`cleanup` 只处理报告列出的旧运行时文件。

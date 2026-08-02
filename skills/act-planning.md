@@ -9,7 +9,7 @@
 | 1 | `outline.act-map` | act-planner ×1 | 已确认卷纲（驱动引擎：冲突阶梯/信息差弧线）、必要设定、`foreshadowing.md`、`timeline.md`、`knowledge/plot/act-decomposition.md` | `acts/volume-N-acts.md`（幕地图） | 幕地图覆盖整卷、幕边界落在真实状态变化处、与卷纲无冲突 → `outline.act` |
 | 2 | `outline.act` | act-planner ×1 | 卷纲、幕地图、项目事实、相邻幕接口、已接受正文入口 | `acts/vol-N-act-K.md`（11 字段：dramatic_task/start_state/conflict_development/character_arcs/information/emotional_curve/promises/setting_constraints/continuity_contract/chapter_roles/end_state） | start_state 承接上一幕、end_state 可被下一幕直接承接、幕间连续性检查通过 → `outline.chapters` |
 
-**知识调用**：拆幕方法论权威 = `knowledge/plot/act-decomposition.md`（第零步卷内分幕操作原则、六步工作流、边界判定信号、题材差异、验证清单、反模式）——建立幕地图前必读；幕间承接看 `knowledge/plot/continuity.md`（事实/动机/代价/信息差/承诺五条件）；题材幕形态差异按 `genre_id` 从 `knowledge/genre/index.md` 叠加。方法名不写进幕纲，只写人物选择、事件因果和读者期待。
+**知识调用**：拆幕方法论权威 = `knowledge/plot/act-decomposition.md`（第零步卷内分幕操作原则、六步工作流、边界判定信号、题材差异、验证清单、反模式；幕间承接五条件：事实/动机/代价/信息差/承诺，见其「承接条件」节）——建立幕地图前必读；长篇连续性通用方法（按幕拆章、状态继承）见 `knowledge/plot/continuity.md`；题材幕形态差异按 `genre_id` 从 `knowledge/genre/index.md` 叠加。方法名不写进幕纲，只写人物选择、事件因果和读者期待。
 
 ## 整卷幕地图
 

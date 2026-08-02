@@ -57,7 +57,7 @@ if (-not (Test-Path $DistDir)) {
 $TempDir = Join-Path $env:TEMP ("novel-pro-pack-" + [guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Path $TempDir | Out-Null
 
-$excludeDirs = @(".git", "__pycache__", ".idea", ".vscode", "dist", ".workbuddy")
+$excludeDirs = @(".git", "__pycache__", ".idea", ".vscode", "dist", ".workbuddy", ".zcode")
 $excludeFiles = @(".gitignore", "release.bat", "release.ps1")
 
 Write-Host "[1/4] Copying release files..."
@@ -126,7 +126,7 @@ Chinese long-form novel writing Skill package.
 ### Install
 1. Download ``$ZipName`` and extract
 2. Run:
-   ``python tools/init.py <project-path> --genre <genre-id>``
+   ``python tools/init.py <project-path> --genre <题材编号>``
 3. See README.md for details
 "@
     $notesFile = Join-Path $env:TEMP ("novel-pro-notes-" + [guid]::NewGuid().ToString("N") + ".md")

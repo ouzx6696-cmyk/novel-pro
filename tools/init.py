@@ -40,6 +40,8 @@ REQUIRED_SOURCE_FILES = (
     Path("templates/settings/context-pack.md"),
     Path("templates/runtime/novel-base.md"),
     Path("templates/volumes/volume-N.md"),
+    Path("templates/acts/vol-N-act-K.md"),
+    Path("templates/characters/character-profile.md"),
     Path("templates/TASKS.md"),
     Path("knowledge/index.md"),
     Path("knowledge/webnovel/index.md"),
@@ -307,7 +309,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="初始化 novel-pro v0.2 小说项目。")
     parser.add_argument("project_path", nargs="?", default=str(Path.cwd()))
     parser.add_argument("--genre", type=int, help=f"题材编号 1-{len(GENRES)}")
-    parser.add_argument("--genre-name", help="直接指定题材名称或编号；用于项目迁移时保留原题材。")
+    parser.add_argument("--genre-name", help="直接指定题材名称（替代 --genre 编号）；用于项目迁移时保留原题材。")
     args = parser.parse_args()
     if args.genre is not None and args.genre_name:
         parser.error("--genre 与 --genre-name 不能同时使用")

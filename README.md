@@ -2,6 +2,33 @@
 
 novel-pro 中文长篇小说创作 Skill，是可独立运行的文学内核。当前项目必须使用 `runtime_profile: novel-pro-0.2`。项目从题材和卷纲开始，用幕与章纲组织长线内容，用幕级任务创建单章 Prompt，再由主代理为每章构造 writer base 并派发独立 writer。
 
+## 🚀 快速开始
+
+### 初始化项目
+```text
+python tools/init.py <project-path> --genre <题材编号>
+```
+
+### 创作主线
+```text
+确认题材 -> 初始化骨架
+-> outline.volume：卷纲与必要设定
+-> outline.acts：整卷幕地图与详细幕纲
+-> outline.chapters：章纲
+-> prompt.create：按幕或批次创建单章 Prompt
+-> prompts.ready
+-> 写作模式（快速草稿）或 编辑模式（文学验收）
+```
+
+### 两种创作模式
+- **写作模式**：快速产出草稿到 `drafts/`，适合先看全貌
+- **编辑模式**：经Reader冷读+Anti-AI扫描+整体返修，产出到 `texts/`，适合精修到可发布
+
+### 新手入门
+- 📖 **[15分钟快速开始指南](docs/getting-started.md)** - 从0到第一章
+- 📝 **[模板填写指引](docs/templates-guide.md)** - 每个字段的详细说明
+- 📚 **[示例文档](docs/examples.md)** - 完整的卷纲/幕纲/Prompt/报告示例
+
 ## 版本门禁与完整迁移
 
 门禁判定条件以 `skills/dispatch.md` 的“版本与迁移边界”为准。概要：旧项目（`story.yaml`、缺少或错误 profile、缺少迁移字段）不直接兼容，也不允许继续走运行时同步；先从当前开发版运行：
@@ -10,7 +37,7 @@ novel-pro 中文长篇小说创作 Skill，是可独立运行的文学内核。�
 python tools/migrate.py <旧项目> <新项目>
 ```
 
-迁移入口会重新初始化新项目、搬运对应内容、生成差异报告。核对 `.migration/report.md` 后执行 `finalize`，再按报告执行 `cleanup --confirm`。源项目在报告核对前保持不变。
+迁移入口会重新初始化新项目、搬运对应内容、生成差异报告。核对 `.migration/report.md` 后执行 `finalize <新项目>`，再按报告执行 `cleanup <新项目> --confirm`。源项目在报告核对前保持不变。
 
 ## Novel Desk 与 TASKS.md 协作
 
@@ -43,7 +70,7 @@ novel-base template
 → one draft
 ```
 
-base 与 Prompt 职责分开：base 提供通用写作框架（身份、写作方式、真实展开、展开工具箱、项目级声线禁区、交付）；Prompt 提供本章剧情、承接、文风、题材与收束（含「本章质感」声线指令）。base 不复制 Prompt 内容，本章声线以 Prompt 为唯一指令源。
+base 与 Prompt 职责分开：base 提供通用写作框架（身份、写作方式、真实展开、展开工具箱、项目级声线禁区、交付）；Prompt 提供本章专属内容（本章故事、人物动机与情绪、场景展开、必守事实与边界，声线以叙述示范与逐场落点承载）。base 不复制 Prompt 内容，本章声线以 Prompt 内承载的声线材料为唯一指令源。
 
 ## 写作模式
 
@@ -102,11 +129,12 @@ python tools/init.py <project-path> --genre <题材编号>
 
 ## 文档
 
-- **[`docs/framework-overview.md`](docs/framework-overview.md)** — 架构、数据流、状态机、版本体系、扩展机制
-- **[`docs/interface-reference.md`](docs/interface-reference.md)** — 操作契约、模块功能、角色接口、知识入口、模板结构
+### 入门与使用
+- **[`docs/getting-started.md`](docs/getting-started.md)** - 新手15分钟快速开始指南
+- **[`docs/templates-guide.md`](docs/templates-guide.md)** - 模板填写指引（每个字段的详细说明+示例）
+- **[`docs/examples.md`](docs/examples.md)** - 完整示例集合（卷纲/幕纲/Prompt/文风/报告）
+- **[`docs/editing-mode-guide.md`](docs/editing-mode-guide.md)** - 编辑模式指南（Reader 冷读 + Anti-AI 扫描 + 整体返修）
 
-## 操作与路径
-
-初始化流程统一理解为：确认题材 → 初始化骨架 → 从 `outline.volume` 开始规划。`outline.acts` 是长期创作阶段；`outline.act-map`、`outline.act` 是该阶段中的临时 operation。显式能力还包括全书质检 `completion.inspect`、完本返修 `completion.revise` 和整卷产物对齐 `alignment`，它们不改变长期 cursor。
-
-仓库说明使用源码路径 `skills/`、`agents/`、`templates/runtime/`。初始化后，这些资源分别部署到项目的 `.claude/skill-resources/` 和 `.claude/agents/`，因此项目内 `CLAUDE.md` 使用部署路径。项目设定由规划层形成，prompt-crafter 按章消费；writer 不直接读取原型库。`tools/init.py` 是发行清单中的初始化入口；源码仓库的开发验证资产不进入发行文件清单。
+### 架构与开发
+- **[`docs/framework-overview.md`](docs/framework-overview.md)** - 架构、数据流、状态机、版本体系、扩展机制
+- **[`docs/interface-reference.md`](docs/interface-reference.md)** - 操作契约、模块功能、角色接口、知识入口、模板结构

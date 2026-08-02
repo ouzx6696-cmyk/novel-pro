@@ -23,6 +23,8 @@ TEMPLATE_FILES = ["novel-base.md"]
 
 SUBDIR_TEMPLATE_FILES = {
     "volumes": ["volume-N.md"],
+    "acts": ["vol-N-act-K.md"],
+    "characters": ["character-profile.md"],
     ".": ["TASKS.md"],
 }
 

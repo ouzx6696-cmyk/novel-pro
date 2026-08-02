@@ -56,7 +56,7 @@ subagent 完成自己的范围后立即返回，不继续派发其他角色；�
 
 ## 创建 Writer
 
-进入 写作、编辑模式 首稿或内容返修时，先阅读 `templates/runtime/novel-base.md` 构造单章 writer base；每章独立 base、独立 writer、独立输出。base 模板分两部分：第一部分是构造指南（base 是什么/何时构造/怎么构造/纪律），第二部分是参考模板。构造时读第一部分获得方法，再按第二部分模板填充（「当前任务」节每章填写，其余通用节保留）。同时阅读目标 Prompt 的「本章质感」小节做质感核对（可执行的具体声线材料；空泛时按 `skills/prompt.md` 缺口规则返回，不构造 base、不补通用文风）；**质感不复制进 base**，本章声线以 Prompt 为唯一指令源。完整机制与正文阅读判断见 `skills/writing.md`、`skills/writer-construction.md`。
+进入 写作、编辑模式 首稿或内容返修时，先阅读 `templates/runtime/novel-base.md` 构造单章 writer base；每章独立 base、独立 writer、独立输出。base 模板分两部分：第一部分是构造指南（base 是什么/何时构造/怎么构造/纪律），第二部分是参考模板。构造时读第一部分获得方法，再按第二部分模板填充（「当前任务」节每章填写，其余通用节保留）。同时阅读目标 Prompt 做声线核对（「本章故事」叙述能示范项目声线，各场「本场声线」是可执行落点；声线空泛时按 `skills/prompt.md` 缺口规则返回，不构造 base、不补通用文风）；**叙述示范与声线落点不复制进 base**，本章声线以 Prompt 内承载的声线材料为唯一指令源。完整机制与正文阅读判断见 `skills/writing.md`、`skills/writer-construction.md`。
 
 ## 批次出口传递
 

@@ -36,7 +36,7 @@ author_confirmed: false
 ## 填写指引
 
 - 卷纲是**驱动引擎**不是内容清单：主导驱动力决定整卷节奏，冲突阶梯决定幕序，信息差弧线决定谁在何时知道什么。
-- 字段链对齐：冲突阶梯 → 幕纲 `conflict_development`；信息差弧线 → 幕纲 `start_state`/`end_state` → 章纲 `characters` → Prompt 人物发动机；承诺清单 → 幕纲 `promises` → 章纲 `reader_effect`。
+- 字段链对齐：冲突阶梯 → 幕纲 `conflict_development`；信息差弧线 → 幕纲 `start_state`/`end_state` → 章纲 `characters` → Prompt 人物动机与情绪；承诺清单 → 幕纲 `promises` → 章纲 `reader_effect`。
 - 只写会改变后续行动、理解或承接的卷级事实；不提前拆幕、切章或写正文。
 - 作者确认卷纲、必要设定与文风后，由顶层将 `story.md` 对应卷行 `author_confirmed` 置为 `true`；缺失或为 `false` 时下游不创建 Prompt。
 - 已存在旧格式卷纲（无本 schema）时按缺字段回退：冲突阶梯从幕地图反推、信息差弧线从幕纲归纳；不强制全量重写。

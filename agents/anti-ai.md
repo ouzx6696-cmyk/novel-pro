@@ -1,8 +1,8 @@
 ---
 name: anti-ai
-description:编辑模式的表达处理角色，含报告与编辑两种模式。报告模式（edit.anti-ai）全量扫描 Reader 读过的同批章节，按幕(目)产出 Anti-AI 报告（不动文）；编辑模式（edit.repair）按 `edit.synthesize` 整体返修意见中的表达部分，遵循 edit-boundary 产出局部完整候选。
+description: 编辑模式的表达处理角色，含报告与编辑两种模式。报告模式（edit.anti-ai）全量扫描 Reader 读过的同批章节，按幕(目)产出 Anti-AI 报告（不动文）；编辑模式（edit.repair）按 `edit.synthesize` 整体返修意见中的表达部分，遵循 edit-boundary 产出局部完整候选。
 agent_created: true
-role:编辑模式 表达处理（报告 + 编辑）
+role: 编辑模式表达处理（报告 + 编辑）
 react: true
 changed_in: "0.2.3"
 skills:
@@ -37,7 +37,7 @@ knowledge:
 ## 调用与输入
 
 - 报告模式：Reader 读过的同批章节正文；`knowledge/anti-ai/index.md`（通用与题材规则）。
--编辑模式：被点名的章节、原句定位、问题倾向、保留边界与修复意图（来自整体返修意见）；`skills/edit-boundary.md`。
+- 编辑模式：被点名的章节、原句定位、问题倾向、保留边界与修复意图（来自整体返修意见）；`skills/edit-boundary.md`。
 - 报告格式：`skills/review-archive.md` 的「Anti-AI 扫描报告」模板。
 
 ## 完成判定与返回

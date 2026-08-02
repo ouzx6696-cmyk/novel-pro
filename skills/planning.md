@@ -12,7 +12,7 @@
 | 2 | `outline.act-map` | act-planner ×1 | 已确认卷纲、设定、`knowledge/plot/act-decomposition.md` | `acts/volume-N-acts.md` | 幕地图覆盖整卷、与卷纲无冲突 → `outline.act` |
 | 3 | `outline.act` | act-planner ×1 | 卷纲、幕地图、项目事实、相邻幕接口 | `acts/vol-N-act-K.md`（11 字段） | start_state 承接上一幕、end_state 可被下一幕承接 → `outline.chapters` |
 | 4 | `outline.chapters` | chapter-planner ×1 | 卷纲、当前幕纲、`knowledge/scene/index.md`（按主导任务）、plot/character 知识、正文入口 | `chapters/vol-N-ch-M.md`（7 字段 + 可选引导）+ 幕级承接快照 `chapters/vol-N-act-K-handoff.md` | 幕内承接顺序复读无冲突 → `prompt.create` |
-| 5 | `prompt.create` | prompt-crafter ×1 | `chapters/vol-N-act-K-handoff.md`（优先）、幕纲、章纲、`settings/context-pack.md`、`settings/writing-style.md` | `prompts/vol-N-ch-M.md`（7 字段，四步转化法）；首任务另写 `settings/context-pack.md` | 每章 Prompt 落盘、顶层逐一读过、自检表无缺口 → 下一批次或 `prompts.ready` |
+| 5 | `prompt.create` | prompt-crafter ×1 | `chapters/vol-N-act-K-handoff.md`（优先）、幕纲、章纲、`settings/context-pack.md`、`settings/writing-style.md` | `prompts/vol-N-ch-M.md`（四节，四步转化法）；首任务另写 `settings/context-pack.md` | 每章 Prompt 落盘、顶层逐一读过、自检表无缺口 → 下一批次或 `prompts.ready` |
 
 **知识库方法映射**（规划链按需调用；底座先行、类型叠加，见 `knowledge/index.md`）：
 
@@ -48,7 +48,7 @@ volume-planner 一次负责一卷。它从作者提供的故事种子、题材�
 ## 设定需求          （只列会实际影响行动和选择的）
 ```
 
-卷纲是驱动引擎不是内容清单：主导驱动力决定节奏，冲突阶梯决定幕序，信息差弧线决定信息流动。字段链对齐——冲突阶梯 → 幕纲 `conflict_development`；信息差弧线 → 幕纲 `start_state`/`end_state` → 章纲 `characters` → Prompt 人物发动机；承诺清单 → 幕纲 `promises` → 章纲 `reader_effect`。已存在旧格式卷纲（缺 schema）时按缺字段回退：冲突阶梯从幕地图反推、信息差弧线从幕纲归纳；不强制全量重写。
+卷纲是驱动引擎不是内容清单：主导驱动力决定节奏，冲突阶梯决定幕序，信息差弧线决定信息流动。字段链对齐——冲突阶梯 → 幕纲 `conflict_development`；信息差弧线 → 幕纲 `start_state`/`end_state` → 章纲 `characters` → Prompt 人物动机与情绪；承诺清单 → 幕纲 `promises` → 章纲 `reader_effect`。已存在旧格式卷纲（缺 schema）时按缺字段回退：冲突阶梯从幕地图反推、信息差弧线从幕纲归纳；不强制全量重写。
 
 volume-planner 同时负责形成 `settings/writing-style.md`。它按模板中的填写指引，从作者提供的声线样本出发，与作者共同确认基准样章、对照示范、节奏配比和声线禁区。**基准样章是文风的硬闸门**：`settings/writing-style.md` 缺基准样章或样章只是占位符/抽象形容词时，不进入下一阶段——volume-planner 先请作者提供一段旧作/参考方向，或针对同一小场景写两种原创短试写让作者选择，再把选择沉淀为项目样章；这是创作确认，不是脚本门禁。文风文件经作者确认后锁定；后续卷需要微调时，由当卷 volume-planner 提出变更、作者确认，不静默修改。
 
@@ -95,7 +95,7 @@ chapter-planner 一次处理一幕。它读取卷纲、当前幕纲、相邻幕�
 ## characters
 人物的已知、未知、误判、关系位置和章末变化。
 ## scenes
-每场的入场状态、行动目标、对方目标或真实阻力、策略、反制、转折、选择、结果与下一步触发；关键场景再补充 POV 人物当下注意的空间/物件、没有说出口的意图和选择留下的余波。
+每场的入场状态、行动目标、对方目标或真实阻力、策略、反制、转折、选择、结果与下一步触发；关键场景再补充 POV 人物当下注意的空间/物件、没有说出口的意图和选择留下的余波。建议每场标注主导性质（对峙/试探/日常/追逐/独处/转场），供 prompt-crafter 判断「本场怎么写」的技法落点。
 ## must_hold
 本章承接的事实、动机、POV、关系、信息差和幕级约束。
 ## ends_with
@@ -106,7 +106,7 @@ chapter-planner 一次处理一幕。它读取卷纲、当前幕纲、相邻幕�
 
 - **`## key_points`（可选）**：段落级引导，与 `scenes` 的场景级粒度互补。每条 2-3 句笔记体，覆盖 **感官/动作/判断** 三个锚点（人物看见什么、做什么、判断出什么）；条数按目标字数倒推（目标字数 ÷ 500）；对白密集章用 场景/对话/权力 变体（现场、谁在说、谁在试探或施压）。**写法对比**——反例「她走进来，气氛尴尬」，正例「她推门进来，外套上还挂着水珠，先看了一眼桌上的信，才开口要那杯茶」。key_points 是展开引导不是正文预写，不锁定对白原文。
 - **`must_hold` 三清单（可选）**：拆为 `must_resolve`（本章必须闭合）/ `must_hold`（本章承接不变）/ `partial_advance`（部分推进、留待后章）；允许空 `[]`。旧版平铺文本仍被接受。
-- **`characters` 信息差轨迹（可选）**：逐角色列 知道/不知道 清单 + 信息差关系（谁 vs 谁）+ 信息差变化（开场→结尾）。这是 Prompt 人物发动机的「已知/未知/误判」字段的上游依据。
+- **`characters` 信息差轨迹（可选）**：逐角色列 知道/不知道 清单 + 信息差关系（谁 vs 谁）+ 信息差变化（开场→结尾）。这是 Prompt 人物动机与情绪中「已知/未知/误判」与施压点的上游依据。
 
 场景知识指引：`scenes` 字段按每场主导任务消费场景写法底座（`knowledge/scene/index.md`）——对白主导读 `dialogue.md`、对抗主导读 `confrontation.md`、转场读 `transition.md`、情绪/内心读 `inner-thought.md`、POV 限知读 `pov.md`、场景现场感读 `scene-truth.md`；只提取当前场需要的判断依据，不把方法名写进章纲。
 

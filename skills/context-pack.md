@@ -17,7 +17,7 @@
 
 1. **底座层（必选，跨题材）**：读取 `knowledge/webnovel/index.md`（连载基线，含 `fanqie-baseline.md`）、`knowledge/scene/index.md`（含自包含提示词方法 `self-contained-prompt.md`）、`knowledge/plot/index.md`（冲突/钩子/节奏/伏笔等本卷用得到的剧情方法；**不含幕拆解方法 `act-decomposition.md`**——那是 act-planner 的拆幕方法，prompt-crafter 不拆幕，不进包）、`knowledge/character/index.md`；按本卷叙事重心从 scene/plot/character 选择子文件（见下方「建包子文件选择清单」）。
 2. **类型层（叠加，按题材）**：读取 `knowledge/genre/index.md`（+父题材速写）与 `settings/genre-setting.md` 的已确认题材期待，叠加当前 `genre_id` 的题材画像。
-3. 把底座方法与题材差异裁剪压缩为 8 节（读者与节奏基线、题材执行要点、冲突钩点节奏、场景写法工具箱[含自包含提示词方法]、人物决策与对手压力、文风提取接口、禁用与边界、使用纪律）。
+3. 把底座方法与题材差异裁剪压缩为 8 节（读者与节奏基线、题材执行要点、冲突钩点节奏、场景写法工具箱[按场景性质分条索引，含自包含提示词方法]、人物决策与对手压力、文风提取接口[全章基调 + 逐场落点两层提取]、禁用与边界、使用纪律）。
 4. 写入 `settings/context-pack.md`，头部 frontmatter 记录 `pack_contract`、`volume`、`genre_id`、`parent_genre`、`formed_by`、`sources`、`style_pointer`。
 5. 继续完成本任务范围的章级 Prompt（同一任务内，不新增 operation）。
 
@@ -40,13 +40,45 @@
 
 - 读 `settings/context-pack.md`（1 个文件）替代 `knowledge/` 下钻（8–18 个文件）。
 - `settings` 事实文件、幕纲、章纲、承接入口照常按章筛读。
-- `settings/writing-style.md` 仍每任务读（它是项目确认物、本章质感源头，保留；pack 第 6 节固化的是"怎么提取"，省去的是推理成本而非这次读取）。
-- 每章 Prompt 只取本章所需，不把包整段搬进 Prompt；不把方法名、来源名、术语写进 Prompt 或正文产物。
+- `settings/writing-style.md` 仍每任务读（它是项目确认物、叙述示范与声线落点的源头，保留；pack 第 6 节固化的是"怎么提取"，省去的是推理成本而非这次读取）。
+- 每章 Prompt 只取本章所需，不把包整段搬进 Prompt；同章多场、多章之间不得复诵同一条技法指令原文，每次取用必须落到当场的人、事、物上；不把方法名、来源名、术语写进 Prompt 或正文产物。
 
 ## 补包（pack 未覆盖的场景/方法）
 
-- 当次任务单点补读对应知识文件，返回时向顶层说明。
-- 顶层决定补入 pack 对应小节（由下一个 `prompt.create` 任务顺手完成）。
+### 按需补包
+- 当次任务遇到 pack 未覆盖的场景类型或方法时，单点补读对应知识文件。
+- 返回时向顶层说明：补读了哪个文件、为什么需要、是否建议补入 pack。
+- 顶层决定是否补入 pack 对应小节（由下一个 `prompt.create` 任务顺手完成）。
+
+### 单条注入
+- 单章遇到未覆盖场景时，允许将单个知识条目注入本章 Prompt（不重建整包）。
+- 注入的条目必须溶解为当前人物的动作、感知和冲突指令，不写方法名。
+- 返回摘要中标注"本章注入了XX方法"，供顶层核对。
+
+## 知识版本追踪
+
+pack 头部 frontmatter 增加版本追踪字段，便于诊断和 alignment 检查：
+
+```yaml
+pack_contract: 1
+volume: {N}
+genre_id: {题材编号}
+parent_genre: {父题材或空}
+formed_by: prompt.create 首任务（vol-N-act-K）
+sources: [实际选用的知识文件清单；按子目录分布，plot 不含 act-decomposition.md，scene 含 self-contained-prompt.md]
+style_pointer: settings/writing-style.md
+knowledge_version: "0.2.3"  # 建包时的知识库版本
+last_updated: "vol-N-act-K"  # 最后更新的任务标识
+patch_notes: []  # 补包记录，格式：{task: "vol-N-act-K", file: "scene/investigation.md", reason: "悬疑场景"}
+summary: {可选：建包返回摘要，供顶层抽查}
+```
+
+字段完整定义以 `templates/settings/context-pack.md` 的 frontmatter 为准。
+
+### 版本追踪用途
+- **alignment 检查**：对比 `knowledge_version` 与当前知识库版本，判断是否需要重建
+- **漂移诊断**：`patch_notes` 记录历次补包，便于追踪 pack 的演化
+- **迁移参考**：新项目重建 pack 时，可参考旧项目的 `sources` 和 `patch_notes`
 
 ## 重建
 

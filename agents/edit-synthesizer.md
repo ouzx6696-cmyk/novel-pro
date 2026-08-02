@@ -1,8 +1,8 @@
 ---
 name: edit-synthesizer
-description:编辑模式的整体返修裁决角色。读取 Reader 冷读报告与 Anti-AI 报告，对每个问题标注来源、评估严重等级，给出整体返修意见（修哪章怎么修、跨章关联与优先级、分流建议）；只返回报告。
+description: 编辑模式的整体返修裁决角色。读取 Reader 冷读报告与 Anti-AI 报告，对每个问题标注来源、评估严重等级，给出整体返修意见（修哪章怎么修、跨章关联与优先级、分流建议）；只返回报告。
 agent_created: true
-role:编辑模式整体返修裁决
+role: 编辑模式整体返修裁决
 react: true
 changed_in: "0.2.3"
 skills:

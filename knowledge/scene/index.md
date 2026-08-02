@@ -21,5 +21,6 @@
 | 仙侠/玄幻战斗、法宝、阵法和突破 | `xianxia-action.md`，并结合题材画像 |
 | 悬疑调查、现场、证词和证据链 | `investigation.md`，并结合题材画像 |
 | Prompt 不自包含：writer 拿到 Prompt 后仍需外部上下文才能写作 | `self-contained-prompt.md` |
+| 返修时如何判断类型、形成焦点、执行和验证 | `repair-methods.md` |
 
-prompt-crafter 读取后把方法改写成当前人物的动作、感知和冲突指令，不在 Prompt 中写文件名、方法标签或示范正文。Reader 读取后只用来解释正文中已经出现的问题和复读方向，不据此虚构缺陷或直接改文。
+prompt-crafter 读取后把方法改写成当前人物的动作、感知和冲突指令，不把知识库示范正文整段抄进 Prompt，不写文件名或方法标签（样句锚点只从项目 `writing-style.md` 基准样章选取或按其声线原创）。Reader 读取后只用来解释正文中已经出现的问题和复读方向，不据此虚构缺陷或直接改文。
