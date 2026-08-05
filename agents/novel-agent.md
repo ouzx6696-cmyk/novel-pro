@@ -65,7 +65,7 @@ subagent 完成自己的范围后立即返回，不继续派发其他角色；�
 1. 本章开始前确认上一章已验收/提交且 `state.update` 已完成（`state_updated: true`）。
 2. 派发 `prompt.create`（单章）→ 阅读 Prompt 与自检表 → 派发 `prompt.review`（默认审计）→ 按 `PASS`/`FIX`/`STOP` 分流。
 3. 写作模式：派发 `write.draft` → 阅读草稿三向判定 → 接受后派发 `state.update` → 推进 `current_chapter`。
-4. 编辑模式：派发 `edit.write` → 逐章闭环（`edit.review`/`edit.anti-ai`/`edit.synthesize`/`edit.repair`/`edit.commit`）→ 派发 `state.update` → 推进 `current_chapter`。
+4. 编辑模式：派发 `edit.write`（幕内逐章写作）→ 幕末批量审读（`edit.review`/`edit.anti-ai`/`edit.synthesize`/`edit.repair`/Reader 复读/`edit.commit` 逐章）→ 派发 `state.update`（逐章）→ 推进 `current_chapter`/幕。
 5. 目标范围完成后：写作模式到 `drafts.ready`，编辑模式到 `volume.complete`。
 
 作者明确放行时可跳过单章 `prompt.review`，在 order 记录。每章的小循环不新增长期 cursor 阶段。

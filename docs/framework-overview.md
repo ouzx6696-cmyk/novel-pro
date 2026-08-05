@@ -61,7 +61,7 @@ Novel Desk 是可选的本地作者工作台。Desk 存在时，双方仅通过�
 | `state-sync.md` | `state.update` | 状态回流：角色状态/时间线/伏笔/设定变更通知消费 |
 | `writer-construction.md` | `write.draft`, `edit.write` | writer base 构造规范 |
 | `writing.md` | `write.draft`, `edit.write` | 顺序链路调度、真实展开原则 |
-| `review-archive.md` | `edit.review`, `edit.anti-ai`, `edit.synthesize`, `edit.repair`, `edit.commit` | 编辑模式逐章阅读闭环、Anti-AI 全量扫描、整体返修裁决、分流返修与正文提交 |
+| `review-archive.md` | `edit.review`, `edit.anti-ai`, `edit.synthesize`, `edit.repair`, `edit.commit` | 编辑模式幕末批量阅读闭环、Anti-AI 全量扫描、整体返修裁决、分流返修与正文提交 |
 | `cold-read-discipline.md` | `edit.review`, `completion.inspect` | 冷读协议、HARD FIX 定义、分流语义 |
 | `edit-boundary.md` | `edit.anti-ai`（报告边界）, `edit.repair`（表达分流）, `completion.revise` | 局部编辑约束边界 |
 | `completion-quality.md` | `completion.inspect`, `completion.revise` | 完本质检范围与返修路由 |
@@ -76,7 +76,7 @@ Novel Desk 是可选的本地作者工作台。Desk 存在时，双方仅通过�
 - **novel-agent**：唯一调度器。自身在 `edit.commit` 和 `migration.review` 中可被作为 subagent 创建。
 - **volume-planner / act-planner / chapter-planner**：规划层。写规划产物。
 - **prompt-crafter / prompt-reviewer**：Prompt 层。prompt-crafter 单章创建（前情取自真实正文）；prompt-reviewer 默认逐章独立审计（9 维度）。
-- **writer / reader**：写作层。writer 只收 base + Prompt（不接触知识库）；reader 逐章冷读，首读不预挂知识。
+- **writer / reader**：写作层。writer 只收 base + Prompt（不接触知识库）；reader 按幕冷读，首读不预挂知识。
 - **continuity-updater**：状态层。每章验收/提交后从正文回流状态到 `settings/`（state_history/时间线/伏笔/通知消费）。
 - **anti-ai / edit-synthesizer / completion-reviewer / completion-editor**：质检层。分别处理表达扫描与编辑、整体返修裁决、完本审查、完本编辑。
 
@@ -125,18 +125,21 @@ story.md（题材方向）
 
 章纲仍是蓝图；Prompt 不再由规划链批量产生，而是由顺序链路逐章创建。
 
-### 顺序链路（draft.write 阶段，逐章循环）
+### 顺序链路（draft.write 阶段，逐章循环 + 幕末批量审读）
 
 ```
-第 M 章：
-prompt-crafter → prompts/vol-N-ch-M.md（contract-4 六块：前情上下文/本章故事/角色初始状态/人物动机与情绪/场景展开/必守事实与边界）
-  ↑ 前情三件套取自上一章真实正文（drafts/ 验收稿或 texts/ 定稿）；角色初始状态取自已回流的状态文件
+写作模式（每章小循环）：
+第 M 章：prompt-crafter → prompts/vol-N-ch-M.md（contract-4 六块）
+  ↑ 前情三件套取自上一章真实正文（同幕全文；跨幕读幕总结）；角色初始状态取自已回流的状态文件
 → prompt-reviewer → 默认逐章审计（9 维度）→ PASS/FIX/STOP
-→ 写作模式：writer → drafts/ → 顶层阅读三向判定
-  或编辑模式：writer → drafts/ → reader 逐章冷读 → anti-ai 全量扫描 → edit-synthesizer 裁决
-              → edit.repair → edit.commit → texts/
-→ continuity-updater → state.update：状态回流（角色 state_history / timeline / foreshadowing / 通知消费）
-→ 第 M+1 章
+→ writer → drafts/ → 顶层阅读三向判定 → continuity-updater → state.update（状态回流）→ 第 M+1 章
+
+编辑模式（逐章写作 + 幕末批量审读）：
+第 M 章：prompt.create（前情取自上一章草稿全文）→ prompt.review → edit.write（writer ×1 写草稿）
+→ 幕内全部草稿形成后：
+  reader 按幕冷读 → anti-ai 同幕全量扫描 → edit-synthesizer 整体裁决
+  → edit.repair 分流返修（REGENERATE 改变既定事实 → 后继章前情刷新）→ Reader 复读
+  → edit.commit（逐章）→ state.update（逐章，同锚点覆盖刷新；幕末章含幕总结）→ 下一幕
 ```
 
 每一次传递是**信息密度增加而非复制**。Prompt 嵌入全部此刻上下文（真实上文 + 当前状态），变成 writer 可执行的行动过程。
@@ -157,11 +160,12 @@ prompt-crafter → prompts/vol-N-ch-M.md（contract-4 六块：前情上下文/�
 ### 阅读链（编辑模式 reader → anti-ai → synthesize → repair → commit）
 
 ```
-edit.write 完成 → reader 逐章冷读（上下文含本章之前全部已提交正文，出冷读报告）
-→ anti-ai 本章全量扫描（出 Anti-AI 报告，不动文）
+幕内草稿全部形成（逐章 edit.write）
+→ reader 按幕顺序冷读（上下文含前幕已提交正文，出冷读报告）
+→ anti-ai 同幕章节全量扫描（出 Anti-AI 报告，不动文）
 → edit-synthesizer 读两份报告：标注来源 + 评估严重等级(严重/中等/轻微) + 给整体返修意见
-→ edit.repair 按意见整体返修（严重 REGENERATE / 中等轻微 anti-ai 编辑）
-→ 受影响范围复读 → edit.commit → texts/ → state.update → 下一章
+→ edit.repair 按意见整体返修（严重 REGENERATE / 中等轻微 anti-ai 编辑；改变既定事实时后继章前情刷新）
+→ 受影响范围复读 → edit.commit（逐章）→ texts/ → state.update（逐章）→ 下一幕
 ```
 
 ### 知识链（knowledge → context-pack → prompt-crafter）
@@ -188,7 +192,7 @@ outline.volume → outline.acts → outline.chapters
 + migration.review（迁移专用，临时占用 cursor）
 ```
 
-`prompts.ready` 与 `review` 已废除：顺序链路下 Prompt 逐章创建，编辑模式逐章闭环，二者都并入 `draft.write` 阶段，由 order 的 `current_chapter` 逐章推进。
+`prompts.ready` 与 `review` 已废除：顺序链路下 Prompt 逐章创建，编辑模式逐章写作、幕末批量审读，二者都并入 `draft.write` 阶段，由 order 的 `current_chapter` 逐章推进。
 
 ### 临时 operation（18 种）
 

@@ -62,32 +62,32 @@ Commit  解决: 最终验收和提交
 
 ### 第1步：edit.write - Writer写首稿
 
-**做什么**：为每章构造writer base，创建独立writer，交付Prompt。
+**做什么**：幕内逐章写作——为每章构造writer base，创建独立writer，交付Prompt；一章写完才写下一章（顺序链路，前情真实），**幕内全部草稿形成后才进入审读**。
 
 **输入**：
 - 单章writer base（顶层构造）
-- 单章Prompt
+- 单章Prompt（前情取自上一章真实草稿全文）
 
 **输出**：
-- `drafts/vol-N-ch-M.md`（草稿）
+- `drafts/vol-N-ch-M.md`（草稿，幕内逐章）
 
 **关键点**：
 - 每章独立writer，独立上下文
 - Writer不读知识库、设定、规划
 - 完全依赖base+Prompt
 
-**完成判定**：所有目标章节草稿形成
+**完成判定**：本幕所有目标章节草稿形成
 
-**下一步**：edit.review
+**下一步**：edit.review（幕末批量审读）
 
 ---
 
 ### 第2步：edit.review - Reader冷读
 
-**做什么**：Reader单章冷读正文（阅读上下文含本章之前全部已提交正文），产出冷读报告。
+**做什么**：Reader按幕顺序冷读本幕全部草稿（上下文含前幕已提交正文），产出按幕组织的冷读报告（幕末批量审读）。
 
 **输入**：
-- 本章正文和候选（+ 本章之前的已提交正文作为上下文）
+- 本幕正文和候选（+ 前幕已提交正文作为上下文）
 
 **冷读纪律**：
 - 首读不读规划、Prompt、知识、报告
@@ -97,7 +97,7 @@ Commit  解决: 最终验收和提交
 **输出**：冷读报告
 ```markdown
 verdict: PASS / FIX / STOP
-chapter: vol-1-ch-2
+act: vol-1-act-2
 
 ## 已成立处
 {哪些人物、动作、关系已经成立}
@@ -134,17 +134,17 @@ chapter: vol-1-ch-2
 
 ### 第3步：edit.anti-ai - Anti-AI全量扫描
 
-**做什么**：Anti-AI对本章正文全量扫描表达问题（顺序链路逐章闭环）。
+**做什么**：Anti-AI对Reader读过的同幕章节全量扫描表达问题（幕末批量审读）。
 
 **输入**：
-- Reader读过的本章正文
+- Reader读过的同幕章节正文
 - `knowledge/anti-ai/index.md`（通用+题材规则）
 
 **不依赖**：不依赖Reader点名，主动全量扫描
 
 **输出**：Anti-AI报告
 ```markdown
-chapter: vol-1-ch-2
+act: vol-1-act-2
 scanned: 全量
 
 ### ch-2
@@ -159,7 +159,7 @@ scanned: 全量
 - 标注是否越出局部编辑边界
 - 不依赖Reader的报告
 
-**完成判定**：本章经全量扫描
+**完成判定**：同幕每章均经全量扫描
 
 **下一步**：edit.synthesize
 

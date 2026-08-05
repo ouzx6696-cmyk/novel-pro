@@ -5,7 +5,7 @@
 写作模式 与编辑模式共用同一套单章 writer 派发机制，都运行在**顺序链路**（`draft.write` 阶段）中：Prompt 跟随正文顺序逐章创建，一章验收/提交后才进入下一章。差别在于草稿完成后是否进入 Reader、返修和提交：
 
 - **写作模式**（`write.draft`）：只产出未经验收的草稿到 `drafts/`，全部目标章完成于 `drafts.ready`。工作目标是"把 Prompt 写成人物的行动过程"。
-- **编辑模式**（`edit.write` → `edit.review` → `edit.anti-ai` → `edit.synthesize` → `edit.repair` → `edit.commit`）：逐章闭环，产出经文学验收的正文到 `texts/`。工作目标是"把草稿编辑到作者可接受、可发布的完成度"。
+- **编辑模式**（`edit.write` → 幕末 `edit.review` → `edit.anti-ai` → `edit.synthesize` → `edit.repair` → `edit.commit`）：逐章写作、幕末批量审读，产出经文学验收的正文到 `texts/`。工作目标是"把草稿编辑到作者可接受、可发布的完成度"。
 
 完整模式定义（工作目标/流程/调度）见 `SKILL.md` 的「写作模式」与「编辑模式」节。调度时序以本模块的各 Flow 节为准；writer 构造以 `skills/writer-construction.md` 为准，不另设派发规则。
 
@@ -23,7 +23,7 @@
 | 4 | —（顶层阅读） | 顶层 | 实际草稿 | — | 阅读信号清单：接受 / 同一 Prompt 重派 / 回退 | `state.update`、重派（回步骤 3）或 `prompt.create`（回步骤 1，必要时回规划层） |
 | 5 | `state.update` | continuity-updater ×1 | 验收稿（写作模式）或定稿（编辑模式）、章纲/幕纲「设定变更通知」、既有 settings | `settings/character-setting/*` 状态块、`timeline.md` 条目、`foreshadowing.md` 台账；移除已消费通知块 | 四项回流完成 → 下一章步骤 1（order `current_chapter` 推进）或终点 |
 
-首章（卷首或每幕首章）的步骤 1 前情来源：幕纲 `start_state` 与上一幕最后一章真实正文（若已存在）。编辑模式在第 3 步后进入闭环：`edit.review`（Reader 单章冷读）→ `edit.anti-ai` → `edit.synthesize` → `edit.repair` → Reader 复读 → `edit.commit`（写入 `texts/`）→ 步骤 5 `state.update`（定稿回流）。完整编辑闭环见 `skills/review-archive.md`「阅读闭环步骤（六步执行表）」。
+首章（卷首或每幕首章）的步骤 1 前情来源：幕纲 `start_state` 与上一幕最后一章真实正文（若已存在）。编辑模式在第 3 步后不立即审读：幕内草稿逐章形成后，在**幕末统一进入批量审读**（`edit.review` Reader 按幕冷读 → `edit.anti-ai` 同幕全量扫描 → `edit.synthesize` 整体裁决 → `edit.repair` 分流返修 → Reader 复读 → `edit.commit` 逐章提交 → `state.update` 逐章回流）。完整编辑闭环见 `skills/review-archive.md`「阅读闭环步骤（六步执行表）」。
 
 构造单章 base 的步骤（每章一次，在创建 writer 之前）：读 `templates/runtime/novel-base.md` 第一部分获得构造方法 → 核对目标 Prompt「本章故事」叙述能示范项目声线且各场「本场声线」是可执行的落点（声线空泛或文风未确认则按 `skills/prompt.md` 缺口规则返回，不构造 base）→ 按第二部分模板填「当前任务」节（mode/chapter/prompt/output/repair_focus）→ 其余通用节按模板原样保留 → base 与 Prompt 共同交付 writer。**叙述示范与声线落点不写入 base**，本章声线以 Prompt 内承载的声线材料（叙述示范 + 各场声线落点；contract-3 以「本章质感」为准，contract-4 含「前情上下文」与「角色初始状态」）为唯一指令源。
 
@@ -87,18 +87,19 @@ outline.chapters（章纲完成）
 
 ## 编辑模式
 
-编辑模式是顺序链路的逐章闭环：每章 `prompt.create` → `prompt.review` → `edit.write` → `edit.review`（Reader 单章冷读）→ `edit.anti-ai`（全量扫描）→ `edit.synthesize`（整体返修裁决）→ `edit.repair` → `edit.commit` → `state.update`（定稿回流）→ 下一章。`edit.write` 使用与写作模式相同的单章 writer 创建方式；已经存在的 draft 由顶层实际阅读后决定是否进入 Reader。
+编辑模式在顺序链路中**逐章写作、幕末批量审读**：每章 `prompt.create` → `prompt.review` → `edit.write`（writer ×1 写草稿），幕内全部草稿形成后统一进入审读链（`edit.review` Reader 按幕冷读 → `edit.anti-ai` 同幕全量扫描 → `edit.synthesize` 整体裁决 → `edit.repair` 分流返修 → Reader 复读 → `edit.commit` 逐章提交 → `state.update` 逐章回流）→ 下一幕。`edit.write` 使用与写作模式相同的单章 writer 创建方式；幕内草稿形成阶段顶层不逐章验收，验收随幕末审读进行。
 
-`edit.review` 由 Reader 对本章冷读——阅读时已读过本章之前全部已提交正文，一致性判断的上下文保持最新；`edit.anti-ai` 随后对本章全量扫描表达问题；`edit.synthesize` 综合两份报告给出整体返修意见，顶层据此选择返修路径：
+幕末审读时，Reader 按幕顺序冷读本幕全部草稿（上下文含前幕已提交正文）；`edit.anti-ai` 随后对同幕章节全量扫描表达问题；`edit.synthesize` 综合两份报告给出整体返修意见，顶层据此选择返修路径：
 
 - Prompt 已经提供完整人物行动和场景因果，但 draft 没有展开时，使用原 Prompt 与 Reader 已指明的返修焦点构造新的 writer base。新 writer 从 Prompt 重新创作完整章节。
-- Prompt 本身遗漏关键行动、承接或事实边界时，prompt-crafter 只修复本章 Prompt，随后顶层用修复后的 Prompt 创建新 writer。
+- Prompt 本身遗漏关键行动、承接或事实边界时，prompt-crafter 只修复受影响 Prompt，随后顶层用修复后的 Prompt 创建新 writer。
 - 幕纲或章纲无法共同成立时，返回拥有该产物的 planner，尚不创建 writer。
 - 表达问题由 anti-ai 在 edit.repair 阶段按 `edit.synthesize` 整体返修意见执行。
+- **前情刷新**：某章被 REGENERATE 重写并改变既定事实时，从被重写章的后一章开始重做 `prompt.create`（前情取自重写后的真实正文）与 `edit.write`；不重做已经成立的章。
 
 原 draft 和候选保留在 task 中供 Reader 复读比较，不作为内容 writer 的创作输入。候选完成后，Reader 重新顺序阅读受影响范围。
 
-`edit.commit` 把 Reader 明确接受的纯正文写入 `texts/`；随后 `state.update` 从定稿回流状态（角色状态/时间线/伏笔/通知消费），下一章 Prompt 直接读取最新状态。
+`edit.commit` 把 Reader 明确接受的纯正文逐章写入 `texts/`；随后 `state.update` 逐章从定稿回流状态（同锚点旧块覆盖刷新），幕末章生成幕总结；下一幕首章 Prompt 读取最新状态与前幕幕总结。
 
 ## 恢复
 

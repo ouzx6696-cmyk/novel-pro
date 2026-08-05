@@ -29,7 +29,7 @@
 | `book.complete` | 全书范围均已接受 | 完整 `texts/` | 仅作已完成事实，不再创建普通写作任务 |
 | `migration.review` | 迁移报告等待复核 | `.migration/report.md`、迁移状态节点 | `finalize` 后恢复 `resume_step` |
 
-**顺序链路说明**（`draft.write` 阶段的内部循环）：不再存在"全部 Prompt 就绪"的批量节点（`prompts.ready` 已废除）。写作模式每章小循环：`prompt.create`（读上一章真实正文 + 状态文件）→ `prompt.review`（默认审计）→ `write.draft`（writer ×1）→ 顶层阅读判定 → `state.update`（状态回流）→ 下一章。编辑模式为逐章闭环：`prompt.create` → `prompt.review` → `edit.write` → `edit.review` → `edit.anti-ai` → `edit.synthesize` → `edit.repair` → `edit.commit` → `state.update` → 下一章。order 的 `current_chapter` 记录当前章，逐章推进。
+**顺序链路说明**（`draft.write` 阶段的内部循环）：不再存在"全部 Prompt 就绪"的批量节点（`prompts.ready` 已废除）。写作模式每章小循环：`prompt.create`（读上一章真实正文 + 状态文件）→ `prompt.review`（默认审计）→ `write.draft`（writer ×1）→ 顶层阅读判定 → `state.update`（状态回流）→ 下一章。编辑模式**逐章写作、幕末批量审读**：幕内每章 `prompt.create` → `prompt.review` → `edit.write`，幕内全部草稿形成后统一 `edit.review`（按幕冷读）→ `edit.anti-ai` → `edit.synthesize` → `edit.repair` → Reader 复读 → `edit.commit`（逐章）→ `state.update`（逐章）→ 下一幕。order 的 `current_chapter` 记录当前章，逐章推进。
 
 `outline.acts` 是长期阶段；`outline.act-map` 和 `outline.act` 只是该阶段内部 operation，不能写入 `status.cursor.step`。`completion.inspect`、`completion.revise`、`alignment` 是旁路任务，不改变长期 cursor。`prompt.review` 与 `state.update` 是顺序链路的默认步骤（在 `draft.write` 阶段内逐章执行），不是旁路。迁移是唯一允许临时占用 `cursor.step` 的运行时例外，因为正常创作必须暂停。
 
@@ -46,12 +46,12 @@
 | `prompt.create` | `draft.write`（顺序链路步骤） | 单章 Prompt |
 | `prompt.review` | `draft.write`（顺序链路默认步骤） | 单章 Prompt 独立审计 |
 | `write.draft` | `draft.write`（顺序链路步骤） | 写作模式单章草稿窗口 |
-| `edit.write` | `draft.write`（顺序链路步骤） | 编辑模式 单章首稿窗口 |
-| `edit.review` | `draft.write`（顺序链路步骤） | 单章冷读（上下文含本章之前全部已提交正文） |
-| `edit.anti-ai` | `draft.write`（顺序链路步骤） | 单章 Anti-AI 全量扫描 |
-| `edit.synthesize` | `draft.write`（顺序链路步骤） | 单章两份报告分级与返修意见 |
-| `edit.repair` | `draft.write`（顺序链路步骤） | 单章按返修意见返修并复读 |
-| `edit.commit` | `draft.write` → `volume.complete` | 单章接受正文提交 |
+| `edit.write` | `draft.write`（顺序链路步骤） | 编辑模式 单章首稿窗口（幕内逐章） |
+| `edit.review` | `draft.write`（幕末批量审读步骤） | 一幕顺序冷读（上下文含前幕已提交正文） |
+| `edit.anti-ai` | `draft.write`（幕末批量审读步骤） | 一幕章节 Anti-AI 全量扫描 |
+| `edit.synthesize` | `draft.write`（幕末批量审读步骤） | 一幕两份报告分级与返修意见 |
+| `edit.repair` | `draft.write`（幕末批量审读步骤） | 一幕按返修意见分流返修并复读 |
+| `edit.commit` | `draft.write` → `volume.complete` | 逐章接受正文提交 |
 | `state.update` | `draft.write`（顺序链路默认步骤） | 单章状态回流（角色状态/时间线/伏笔/通知消费） |
 | `completion.inspect` | 不变 | 显式全书冷读 |
 | `completion.revise` | 不变 | 显式完本返修与复读 |
@@ -155,34 +155,34 @@
 - 恢复入口：只重派没有可用产物的章节，已有候选不覆盖
 
 ### edit.review
-- 触发：本章首稿形成（`edit.write` 完成）
+- 触发：本幕草稿全部形成（幕末批量审读）
 - 加载模块：`skills/review-archive.md` + `skills/cold-read-discipline.md`
-- 创建角色：reader ×1（范围 = 单章冷读；阅读上下文含本章之前全部已提交正文与幕纲）
-- 角色输入：本章正文和候选；首读后才读契约、Prompt、知识
+- 创建角色：reader ×1（范围 = 一幕顺序冷读；阅读上下文含前幕已提交正文）
+- 角色输入：本幕草稿和候选；首读后才读契约、Prompt、知识
 - 允许写入：不写项目产物
-- 返回顶层：单章冷读报告——verdict（PASS/FIX/STOP）、已成立处、正文证据、根因、最小处理范围、保留项、建议处理角色、接受候选和复读范围
-- 完成判定：本章冷读完成且无未解决问题或已分流
+- 返回顶层：按幕(目)组织的冷读报告——幕级 verdict（PASS/FIX/STOP）、已成立处、正文证据、根因、最小处理范围、保留项、建议处理角色、接受候选和复读范围
+- 完成判定：受影响范围全部顺序复读，无未解决问题或已分流
 - 下一跳：`edit.anti-ai`
 - 恢复入口：按受影响范围从头顺序复读
 
 ### edit.anti-ai
-- 触发：本章冷读报告已返回（`edit.review` 完成）
+- 触发：`edit.review` 完成（冷读报告已返回）
 - 加载模块：`skills/review-archive.md`（Anti-AI 全量扫描章节）+ `skills/edit-boundary.md`
-- 创建角色：anti-ai ×1（范围 = 本章，全量扫描）
-- 角色输入：Reader 读过的本章正文；`knowledge/anti-ai/index.md`（通用与题材规则）；不依赖 Reader 点名
-- 允许写入：当前 task 的 Anti-AI 报告；不直接改正文、不写 `texts/`
-- 返回顶层：本章 Anti-AI 报告——AI 味/模板化表达/解释腔/机械重复/不自然对白等证据、原句定位、严重倾向（严重/中等/轻微），并标注是否越出局部编辑边界
-- 完成判定：本章经全量扫描并列于报告
+- 创建角色：anti-ai ×1（范围 = 与 `edit.review` 同幕章节，全量扫描）
+- 角色输入：Reader 读过的同幕章节正文；`knowledge/anti-ai/index.md`（通用与题材规则）；不依赖 Reader 点名
+- 允许写入：当前 task 的 Anti-AI 报告（按幕/目组织）；不直接改正文、不写 `texts/`
+- 返回顶层：按幕(目)的 Anti-AI 报告——每章列出 AI 味/模板化表达/解释腔/机械重复/不自然对白等证据、原句定位、严重倾向（严重/中等/轻微），并标注是否越出局部编辑边界
+- 完成判定：同幕每章均经全量扫描并列于报告
 - 下一跳：`edit.synthesize`
 - 恢复入口：只重扫缺失或被证据点名的章节
 
 ### edit.synthesize
-- 触发：本章两份报告齐备（`edit.anti-ai` 完成）
+- 触发：`edit.anti-ai` 完成（两份报告齐备）
 - 加载模块：`skills/review-archive.md`（整体返修裁决章节）
-- 创建角色：edit-synthesizer ×1（范围 = 本章的整体裁决）
-- 角色输入：Reader 冷读报告 + Anti-AI 报告（本章）；必要承接与已确认事实
+- 创建角色：edit-synthesizer ×1（范围 = 同幕章节的整体裁决）
+- 角色输入：Reader 冷读报告 + Anti-AI 报告（同幕章节）；必要承接与已确认事实
 - 允许写入：当前 task 的整体返修意见（分级 + 章节 + 怎么修 + 问题归属 + 优先级）；不写正文、规划或 `texts/`
-- 返回顶层：整体返修意见——对每个问题标注来源（冷读 / Anti-AI），评估严重等级（严重/中等/轻微），明确修哪、怎么修、跨章关联与处理优先级；给出分流建议（REGENERATE 类 → writer/prompt-crafter/planner；局部表达类 → anti-ai 编辑模式）
+- 返回顶层：整体返修意见——对每章每个问题标注来源（冷读 / Anti-AI），评估严重等级（严重/中等/轻微），明确修哪一章、怎么修、跨章关联与处理优先级（含 REGENERATE 是否触发后继章前情刷新）；给出分流建议（REGENERATE 类 → writer/prompt-crafter/planner；局部表达类 → anti-ai 编辑模式）
 - 完成判定：所有问题均被分级、归属并给出可执行返修意图
 - 下一跳：`edit.repair` 或 `edit.commit`（无返修项时直接提交）
 - 恢复入口：保留两份报告与返修意见，只重做缺失章节的裁决
@@ -191,7 +191,7 @@
 - 触发：`edit.synthesize` 完成（整体返修意见已返回，且存在需返修项）
 - 加载模块：`skills/review-archive.md`（按整体返修意见执行）；表达编辑分流到 `skills/edit-boundary.md`
 - 创建角色：按返修意见的分流建议创建 → 严重(REGENERATE)：新 writer / prompt-crafter / planner；中等/轻微表达：anti-ai（编辑模式）
-- 角色输入：整体返修意见 + 受影响正文 + 必要承接与 Prompt；整体返修须考虑跨章关联与按严重等级的处理优先级
+- 角色输入：整体返修意见 + 受影响正文 + 必要承接与 Prompt；整体返修须考虑跨章关联与按严重等级的处理优先级；REGENERATE 改变既定事实时，从被重写章的后一章开始重做 `prompt.create`（前情刷新）与 `edit.write`
 - 允许写入：按分流写 draft candidate / 修复 Prompt / 重建规划 / 表达候选
 - 返回顶层：各候选完成状态与最小返修范围
 - 完成判定：每个候选完成并进入复读
@@ -199,14 +199,14 @@
 - 恢复入口：保留原文与候选，按返修意见重新交对应角色
 
 ### edit.commit
-- 触发：本章复读后无未解决问题
+- 触发：本幕复读后无未解决问题
 - 加载模块：`skills/review-archive.md`
 - 创建角色：novel-agent 自身（无 subagent）
 - 角色输入：已复读接受候选、task 报告、目标路径
-- 允许写入：`texts/`、控制面文件、run-log 和 task 收尾
+- 允许写入：`texts/`（逐章）、控制面文件、run-log 和 task 收尾
 - 返回顶层：提交结果和下一长期阶段
 - 完成判定：`edit.commit` 预检通过
-- 下一跳：`state.update`；目标范围全部提交后 → `volume.complete` 或 `book.complete`
+- 下一跳：`state.update`（逐章回流，同锚点覆盖刷新；幕末章含幕总结）；目标范围全部提交后 → `volume.complete` 或 `book.complete`
 - 恢复入口：预检失败不写任何目标，保留现场
 
 ### state.update

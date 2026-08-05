@@ -87,32 +87,32 @@ dispatch.md 中的每张派发卡定义了 operation 的完整契约。九字段
 - **下一跳**：`edit.review`
 
 ### edit.review
-- **触发**：`edit.write` 完成
+- **触发**：本幕草稿全部形成（幕末批量审读）
 - **加载模块**：`skills/review-archive.md` + `skills/cold-read-discipline.md`
-- **角色**：reader ×1（单章）
-- **输入**：本章正文和候选（上下文含本章之前全部已提交正文）；首读后才读契约、Prompt、知识
+- **角色**：reader ×1（一幕）
+- **输入**：本幕正文和候选（上下文含前幕已提交正文）；首读后才读契约、Prompt、知识
 - **允许写入**：不写项目产物
-- **返回**：单章冷读报告——verdict、已成立处、正文证据、根因、最小处理范围、保留项、建议处理角色、接受候选、复读范围
-- **完成**：本章冷读完成，无未解决问题或已分流
+- **返回**：按幕(目)组织的冷读报告——幕级 verdict、已成立处、正文证据、根因、最小处理范围、保留项、建议处理角色、接受候选、复读范围
+- **完成**：受影响范围全部顺序复读，无未解决问题或已分流
 - **下一跳**：`edit.anti-ai`
 
 ### edit.anti-ai
 - **触发**：`edit.review` 完成（冷读报告已返回）
 - **加载模块**：`skills/review-archive.md`（Anti-AI 全量扫描章节）+ `skills/edit-boundary.md`
-- **角色**：anti-ai ×1（范围 = 本章，全量扫描）
-- **输入**：Reader 读过的本章正文；`knowledge/anti-ai/index.md`；不依赖 Reader 点名
-- **允许写入**：当前 task 的 Anti-AI 报告（单章）；不直接改正文、不写 `texts/`
-- **返回**：单章 Anti-AI 报告——AI 味/模板化/解释腔/机械重复/不自然对白等证据、原句定位、严重倾向（严重/中等/轻微）、是否越界
-- **完成**：本章经全量扫描并列于报告
+- **角色**：anti-ai ×1（范围 = 与 `edit.review` 同幕章节，全量扫描）
+- **输入**：Reader 读过的同幕章节正文；`knowledge/anti-ai/index.md`；不依赖 Reader 点名
+- **允许写入**：当前 task 的 Anti-AI 报告（按幕/目组织）；不直接改正文、不写 `texts/`
+- **返回**：按幕(目)的 Anti-AI 报告——每章列出 AI 味/模板化/解释腔/机械重复/不自然对白等证据、原句定位、严重倾向（严重/中等/轻微）、是否越界
+- **完成**：同幕每章均经全量扫描并列于报告
 - **下一跳**：`edit.synthesize`
 
 ### edit.synthesize
 - **触发**：`edit.anti-ai` 完成（两份报告齐备）
 - **加载模块**：`skills/review-archive.md`（整体返修裁决章节）
 - **角色**：edit-synthesizer ×1
-- **输入**：Reader 冷读报告 + Anti-AI 报告（本章）；必要承接与已确认事实
-- **允许写入**：当前 task 的整体返修意见（分级 + 定位 + 怎么修 + 问题归属 + 优先级）；不写正文/规划/`texts/`
-- **返回**：整体返修意见——标注来源（冷读/Anti-AI）、严重等级（严重/中等/轻微）、修哪里怎么修、跨章关联与优先级、分流建议
+- **输入**：Reader 冷读报告 + Anti-AI 报告（同幕章节）；必要承接与已确认事实
+- **允许写入**：当前 task 的整体返修意见（分级 + 章节 + 怎么修 + 问题归属 + 优先级）；不写正文/规划/`texts/`
+- **返回**：整体返修意见——标注来源（冷读/Anti-AI）、严重等级（严重/中等/轻微）、修哪章怎么修、跨章关联与优先级（含 REGENERATE 是否触发后继章前情刷新）、分流建议
 - **完成**：所有问题均被分级、归属并给出可执行返修意图
 - **下一跳**：`edit.repair` 或 `edit.commit`（无返修项时直接提交）
 
@@ -120,21 +120,21 @@ dispatch.md 中的每张派发卡定义了 operation 的完整契约。九字段
 - **触发**：`edit.synthesize` 完成（整体返修意见已返回，且存在需返修项）
 - **加载模块**：`skills/review-archive.md`（按整体返修意见执行）；表达编辑分流到 `skills/edit-boundary.md`
 - **角色**：按返修意见分流建议创建 → 严重(REGENERATE)：新 writer / prompt-crafter / planner；中等/轻微表达：anti-ai（编辑模式）
-- **输入**：整体返修意见 + 受影响正文 + 必要承接与 Prompt；整体返修考虑跨章关联与处理优先级
+- **输入**：整体返修意见 + 受影响正文 + 必要承接与 Prompt；REGENERATE 改变既定事实时，从被重写章的后一章开始重做 prompt.create（前情刷新）与 edit.write
 - **允许写入**：按分流写 draft candidate / 修复 Prompt / 重建规划 / 表达候选
 - **返回**：各候选完成状态与最小返修范围
 - **完成**：每个候选完成并进入复读
 - **下一跳**：Reader 重新顺序阅读受影响范围
 
 ### edit.commit
-- **触发**：本章复读后无未解决问题
+- **触发**：本幕复读后无未解决问题
 - **加载模块**：`skills/review-archive.md`
 - **角色**：novel-agent 自身（无 subagent）
 - **输入**：已复读接受候选、task 报告、目标路径
-- **允许写入**：`texts/`、控制面文件、run-log、task 收尾
+- **允许写入**：`texts/`（逐章）、控制面文件、run-log、task 收尾
 - **返回**：提交结果和下一长期阶段
 - **完成**：预检通过
-- **下一跳**：`state.update`；目标范围全部提交后 → `volume.complete` 或 `book.complete`
+- **下一跳**：`state.update`（逐章，同锚点覆盖刷新；幕末章含幕总结）；目标范围全部提交后 → `volume.complete` 或 `book.complete`
 
 ### state.update（顺序链路默认步骤）
 - **触发**：本章正文被接受（写作模式草稿验收）或提交（编辑模式 `edit.commit` 完成）
@@ -279,7 +279,7 @@ dispatch.md 中的每张派发卡定义了 operation 的完整契约。九字段
 - **顺序链路执行入口**：5 步链路表（prompt.create → prompt.review → write.draft/edit.write → 顶层阅读 → state.update 的读/写/判定）
 - 写作模式流程：逐章循环（一章验收后才创建下一章 Prompt）
 - 写作模式阅读信号清单：接受信号 / 重派信号 / 回退信号
-- 编辑模式调度：逐章闭环
+- 编辑模式调度：逐章写作、幕末批量审读
 - 真实展开原则：5 条写作原则
 - 恢复：current_chapter 逐章断点
 
@@ -287,12 +287,12 @@ dispatch.md 中的每张派发卡定义了 operation 的完整契约。九字段
 **定位**：编辑模式阅读闭环。
 **操作**：`edit.review`、`edit.anti-ai`、`edit.synthesize`、`edit.repair`、`edit.commit`。
 **内容**：
-- 编辑模式创作流程（逐章闭环，commit 后接 state.update）
-- 阅读闭环：Reader 单章冷读（上下文含本章之前全部已提交正文）→ Anti-AI 单章全量扫描 → `edit.synthesize` 整体返修裁决 → repair → 复读 → commit
+- 编辑模式创作流程（逐章写作 + 幕末批量审读；返修后前情刷新）
+- 阅读闭环：Reader 按幕冷读（上下文含前幕已提交正文）→ Anti-AI 同幕全量扫描 → `edit.synthesize` 整体返修裁决 → repair → 复读 → commit（逐章）
 - 分流与分级（同前）
 - 最小正文核对权限（同前）
-- 报告模板：冷读报告（单章）、Anti-AI 扫描报告（单章）、整体返修意见（分级 + 定位 + 怎么修 + 跨章关联 + 优先级）
-- Commit 四步；提交后 `state.update`
+- 报告模板：冷读报告（按幕/目）、Anti-AI 扫描报告（按幕/目）、整体返修意见（分级 + 章节 + 怎么修 + 跨章关联含前情刷新标记 + 优先级）
+- Commit 四步；提交后 `state.update`（逐章，同锚点覆盖刷新；幕末章含幕总结）
 - 幕间校准：与 state.update 分工（正文事实→settings；规划核对→校准）
 
 ### cold-read-discipline.md
@@ -402,23 +402,23 @@ dispatch.md 中的每张派发卡定义了 operation 的完整契约。九字段
 - **类别**：正文阅读
 - **skill**：`skills/review-archive.md` + `skills/cold-read-discipline.md`
 - **知识挂载**：无（保护冷读，首读后按需追查）
-- **输入**：本章 draft、已接受正文或候选（上下文含本章之前全部已提交正文）
-- **返回**：单章 verdict、已成立处、正文证据、根因、最小处理范围、保留项、建议处理角色、接受候选、仍未解决的问题
+- **输入**：本幕 draft、已接受正文或候选（上下文含前幕已提交正文）
+- **返回**：幕级 verdict、已成立处、正文证据、根因、最小处理范围、保留项、建议处理角色、接受候选、仍未解决的问题
 - **写入**：不写项目产物
 
 ### continuity-updater
 - **类别**：状态回流
 - **skill**：`skills/state-sync.md`
 - **知识挂载**：无
-- **输入**：本章验收稿/定稿、章纲（chapter_end_state/设定变更通知）、幕纲（设定变更通知）、既有 settings/
-- **返回**：状态同步摘要（追加清单、消费/保留通知、与 chapter_end_state 的偏差清单）
-- **写入**：`settings/character-setting/*.md`（state_history 状态块）、`timeline.md`、`foreshadowing.md`；移除已消费通知块
+- **输入**：本章验收稿/定稿、章纲（chapter_end_state/设定变更通知）、幕纲（设定变更通知）、既有 settings/；幕末章另含本幕全部正文
+- **返回**：状态同步摘要（追加清单、消费/保留通知、与 chapter_end_state 的偏差清单；幕末章另含幕总结路径）
+- **写入**：`settings/character-setting/*.md`（state_history 状态块）、`timeline.md`、`foreshadowing.md`；移除已消费通知块；幕末章生成 `summaries/vol-N-act-K.md`
 
 ### anti-ai
 - **类别**：表达处理（报告 + 编辑，编辑模式内两模式）
 - **skill**：`skills/edit-boundary.md`
 - **知识挂载**：`knowledge/anti-ai/index.md`
-- **输入**：报告模式（edit.anti-ai）读本章正文；编辑模式（edit.repair）读返修意见中的表达问题点名
+- **输入**：报告模式（edit.anti-ai）读同幕章节正文；编辑模式（edit.repair）读返修意见中的表达问题点名
 - **返回**：报告模式返回 Anti-AI 报告（按幕/目，不动文）；编辑模式 返回局部编辑候选
 - **写入**：task 报告 / task 候选
 
@@ -426,7 +426,7 @@ dispatch.md 中的每张派发卡定义了 operation 的完整契约。九字段
 - **类别**：编辑模式整体返修裁决
 - **skill**：`skills/review-archive.md`
 - **知识挂载**：无（以两份报告为主，不对正文全面重读；仅报告分歧/断言需验证时只读关键段落核对证据）
-- **输入**：Reader 冷读报告 + Anti-AI 报告（本章）；必要承接与已确认事实
+- **输入**：Reader 冷读报告 + Anti-AI 报告（同幕章节）；必要承接与已确认事实
 - **返回**：整体返修意见——来源归属、严重等级（严重/中等/轻微）、修哪章怎么修、跨章关联、优先级、分流建议；最小核对范围注明
 - **写入**：不写正文/规划/`texts/`（仅返回报告供顶层持久化）
 

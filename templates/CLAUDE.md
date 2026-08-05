@@ -176,30 +176,31 @@ writer 写入 drafts/vol-N-ch-M.md
 
 ### 编辑模式（Editing Mode）
 
-**目标**：逐章闭环，经完整文学验收，产出可发布正文
+**目标**：逐章写作、幕末批量审读，经完整文学验收，产出可发布正文
 
 **完整流程**：
 ```text
-第 M 章：
-prompt.create → prompt.review（默认审计）
+逐章写作（幕内草稿按序形成，不立即审读）：
+第 M 章：prompt.create（前情取自上一章草稿全文）→ prompt.review（默认审计）
   ↓
-edit.write：writer ×1 写首稿 drafts/
+edit.write：writer ×1 写草稿 drafts/
   ↓
-edit.review：Reader 单章冷读（上下文含本章之前全部已提交正文）→ 冷读报告
+幕末批量审读（幕内全部草稿形成后）：
+edit.review：Reader 按幕冷读（上下文含前幕已提交正文）→ 冷读报告
   ↓
-edit.anti-ai：Anti-AI 全量扫描 → Anti-AI 报告
+edit.anti-ai：Anti-AI 同幕章节全量扫描 → Anti-AI 报告
   ↓
-edit.synthesize：综合两份报告 → 整体返修意见（分级+分流）
+edit.synthesize：综合两份报告 → 整体返修意见（分级+分流，含前情刷新标记）
   ↓
 edit.repair：按返修意见整体返修
-  ├─ 严重(REGENERATE) → writer/prompt-crafter/planner
+  ├─ 严重(REGENERATE) → writer/prompt-crafter/planner（改变既定事实时后继章前情刷新）
   └─ 中等/轻微表达 → anti-ai 编辑模式
   ↓
 Reader 按判定清单复读受影响范围
   ↓
-edit.commit：texts/vol-N-ch-M.md
+edit.commit：逐章写入 texts/vol-N-ch-M.md
   ↓
-state.update（定稿回流状态）→ 第 M+1 章
+state.update（逐章定稿回流，同锚点覆盖刷新）→ 幕总结 → 下一幕
 ```
 
 **核心机制**：

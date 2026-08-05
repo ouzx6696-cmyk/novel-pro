@@ -63,7 +63,7 @@ python tools/migrate.py <旧项目> <新项目>
 - prompt-crafter 一次负责一章（顺序链路，跟随正文顺序逐章创建）。
 - prompt-reviewer 一次负责一章 Prompt 的独立审计（顺序链路默认步骤）。
 - writer 一次负责一章。
-- Reader 一次冷读一章（编辑模式逐章闭环；阅读上下文含本章之前全部已提交正文）。
+- Reader 一次按幕顺序冷读（编辑模式幕末批量审读；上下文含前幕已提交正文）。
 - continuity-updater 一次负责一章的状态回流（`state.update`，顺序链路默认步骤）。
 - completion-reviewer 按叙事顺序一次一幕地冷读全书（显式完本任务）。
 
@@ -76,7 +76,7 @@ python tools/migrate.py <旧项目> <新项目>
 | 顶层调度 | `novel-agent` | 阶段调度、writer base、恢复与提交 |
 | 规划 | `volume-planner`、`act-planner`、`chapter-planner` | 卷纲、幕纲与章纲 |
 | Prompt | `prompt-crafter`、`prompt-reviewer` | 单章 Prompt 创建与顺序链路默认独立审计 |
-| 正文 | `writer`、`reader` | 单章创作与单章冷读复读 |
+| 正文 | `writer`、`reader` | 单章创作与按幕冷读复读 |
 | 表达 | `anti-ai` | 编辑模式全量表达扫描报告 + 按返修意见的局部编辑候选 |
 | 返修裁决 | `edit-synthesizer` | 综合两份报告，分级并给整体返修意见 |
 | 状态 | `continuity-updater` | 单章状态回流：角色状态/时间线/伏笔/设定变更通知消费 |
@@ -124,28 +124,27 @@ outline.chapters 完成（章纲是蓝图）
 
 ## 编辑模式（Editing Mode）
 
-**工作目标**：在顺序链路中逐章完成"写 → 读 → 扫 → 裁 → 修 → 提交"闭环，产出经 Reader 文学验收并写入 `texts/` 的正文。它交付"已验收的正文"——每一章都经过内容冷读、表达全量扫描、分级裁决与按证据返修，目标是正文达到作者可接受、可发布的完成度。
+**工作目标**：在顺序链路中逐章写作、幕末批量审读，产出经 Reader 文学验收并写入 `texts/` 的正文。它交付"已验收的正文"——每一章都经过内容冷读、表达全量扫描、分级裁决与按证据返修，目标是正文达到作者可接受、可发布的完成度。
 
-**工作流程**（顺序链路，逐章闭环）：
+**工作流程**（逐章写作 + 幕末批量审读）：
 ```text
 outline.chapters 完成
-→ 第 M 章：
-   prompt.create → prompt.review（默认审计）
-   → edit.write：writer ×1 写首稿 drafts/
-   → edit.review：Reader 单章冷读（上下文含本章之前全部已提交正文），出冷读报告
-   → edit.anti-ai：Anti-AI 全量扫描本章，出 Anti-AI 报告（不动文）
+→ 逐章写作（幕内草稿按序形成，不立即审读）：
+   第 M 章：prompt.create（前情取自上一章草稿全文）→ prompt.review（默认审计）→ edit.write（writer ×1）
+→ 幕末批量审读（幕内全部草稿形成后）：
+   edit.review：Reader 按幕顺序冷读全部草稿（上下文含前幕已提交正文），出冷读报告
+   → edit.anti-ai：Anti-AI 全量扫描同幕章节，出 Anti-AI 报告（不动文）
    → edit.synthesize：edit-synthesizer 读两份报告，分级（严重/中等/轻微）并给整体返修意见
    → edit.repair：按整体返修意见分流返修
-       ├─ 严重(REGENERATE) → 新 writer / prompt-crafter / planner
+       ├─ 严重(REGENERATE) → 新 writer / prompt-crafter / planner（改变既定事实时后继章前情刷新）
        └─ 中等/轻微表达 → anti-ai 编辑模式（edit-boundary）
    → Reader 按复读范围判定清单重新顺序冷读
-   → 无未解决问题时 edit.commit → texts/vol-N-ch-M.md
-   → state.update：从定稿正文回流状态
-→ 全部目标章提交
-→ volume.complete
+   → 无未解决问题时 edit.commit（逐章写入 texts/vol-N-ch-M.md）
+   → state.update（逐章从定稿回流，同锚点覆盖刷新；幕末章含幕总结）
+→ 下一幕；全部目标章提交 → volume.complete
 ```
 
-**调度机制**：`edit.write` 使用与写作模式相同的单章 writer 创建方式；已存在的 draft 由顶层实际阅读后决定是否进入编辑链。`edit.review` 由 Reader 对本章冷读——阅读时已读过本章之前全部已提交正文，一致性判断的上下文比批量模式更新鲜；`edit.anti-ai` 随后对本章全量扫描表达问题；`edit.synthesize` 综合两份报告给出整体返修意见（含最小正文核对权限），顶层据此选择返修路径（原 Prompt 重派 / prompt-crafter 修 Prompt / planner 调整 / anti-ai 表达编辑）。每次返修后 Reader 按判定清单复读；复读通过后 `edit.commit` 由 novel-agent 预检并写入 `texts/`，随后 `state.update` 回流状态并进入下一章。完整时序、分流与复读纪律见 `skills/dispatch.md` 的「创作循环」与 `skills/review-archive.md`；每步精确的读/写/判定见 `skills/review-archive.md` 的「阅读闭环步骤（六步执行表）」。
+**调度机制**：幕内写作保持顺序链路（每章 Prompt 前情直接取自上一章真实草稿全文，一章写完才写下一章），但**验收/审读统一推迟到幕末**——Reader 按幕批量冷读、anti-ai 同幕全量扫描、edit-synthesize 同幕整体裁决，审读成本回到批量水平。已存在的 draft 由顶层实际阅读后决定是否进入编辑链。每次返修后 Reader 按判定清单复读；某章被 REGENERATE 重写并改变既定事实时，从被重写章的后一章开始重做 Prompt 与草稿（前情刷新）。复读通过后 `edit.commit` 由 novel-agent 预检并逐章写入 `texts/`，随后 `state.update` 逐章回流状态并生成幕总结。完整时序、分流与复读纪律见 `skills/dispatch.md` 的「创作循环」与 `skills/review-archive.md`；每步精确的读/写/判定见 `skills/review-archive.md` 的「阅读闭环步骤（六步执行表）」。
 
 ## 阅读与质量
 

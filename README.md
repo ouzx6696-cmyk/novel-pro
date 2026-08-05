@@ -26,7 +26,7 @@ python tools/init.py <project-path> --genre <题材编号>
 
 ### 两种创作模式
 - **写作模式**：顺序链路中逐章快速产出草稿到 `drafts/`，适合先看全貌
-- **编辑模式**：逐章闭环，经 Reader 冷读 + Anti-AI 扫描 + 整体返修，产出到 `texts/`，适合精修到可发布
+- **编辑模式**：逐章写作、幕末批量审读，经 Reader 冷读 + Anti-AI 扫描 + 整体返修，产出到 `texts/`，适合精修到可发布
 
 ### 新手入门
 - 📖 **[15分钟快速开始指南](docs/getting-started.md)** - 从0到第一章
@@ -85,18 +85,20 @@ base 与 Prompt 职责分开：base 提供通用写作框架（身份、写作�
 
 ## 编辑模式
 
-编辑模式是顺序链路的逐章闭环：
+编辑模式**逐章写作、幕末批量审读**——写作保持顺序链路（每章 Prompt 前情直接取自上一章真实草稿全文），审读成本回到批量水平：
 
 ```text
-prompt.create → prompt.review（默认审计）
-→ edit.write（writer ×1 写首稿）
-→ edit.review（Reader 单章冷读，上下文含本章之前全部已提交正文）
-→ edit.anti-ai（Anti-AI 本章全量扫描报告）
-→ edit.synthesize（整体返修裁决：分级 + 修哪里怎么修 + 问题归属）
-→ edit.repair（按整体返修意见整体返修）→ edit.commit → state.update
+逐章写作（幕内草稿按序形成）：
+prompt.create → prompt.review（默认审计）→ edit.write（writer ×1 写草稿）
+→ 幕末批量审读：
+edit.review（Reader 按幕冷读，上下文含前幕已提交正文）
+→ edit.anti-ai（Anti-AI 同幕章节全量扫描报告）
+→ edit.synthesize（整体返修裁决：分级 + 修哪章怎么修 + 问题归属）
+→ edit.repair（按整体返修意见分流返修；REGENERATE 改变既定事实时后继章前情刷新）
+→ Reader 复读 → edit.commit（逐章）→ state.update（逐章，同锚点覆盖刷新）→ 幕总结
 ```
 
-Reader 单章冷读出冷读报告；anti-ai 随后全量扫描本章出 Anti-AI 报告（不动文）；edit-synthesizer 综合两份报告，标注问题来源（冷读/Anti-AI）、评估严重等级（严重/中等/轻微），给出整体返修意见（明确修哪里、怎么修、跨章关联与优先级）；`edit.repair` 据此整体返修，接受正文写入 `texts/`，随后 `state.update` 从定稿回流状态并进入下一章。
+Reader 按幕冷读出冷读报告；anti-ai 随后全量扫描同幕章节出 Anti-AI 报告（不动文）；edit-synthesizer 综合两份报告，标注问题来源（冷读/Anti-AI）、评估严重等级（严重/中等/轻微），给出整体返修意见（明确修哪章、怎么修、跨章关联与优先级）；`edit.repair` 据此整体返修，接受正文逐章写入 `texts/`，随后 `state.update` 从定稿回流状态并生成幕总结。
 
 ## 状态同步（"当前状态"系统）
 

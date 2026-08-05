@@ -134,6 +134,6 @@ chapter-planner 顺序复读整幕章纲，确认第一章承接 `start_state`�
 
 顶层先按幕完成目标写作范围内的章纲，再进入**顺序链路**：Prompt 不再提前批量创建，而是跟随正文顺序逐章创建——先创建第 M 章 Prompt、写作并验收第 M 章后，才创建第 M+1 章 Prompt（其「前情上下文」直接取自第 M 章真实验收稿）。
 
-顺序链路中每章一个小循环（写作模式）：`prompt.create`（读上一章真实正文 + 当前状态文件）→ `prompt.review`（默认逐章审计）→ `write.draft`（writer ×1）→ 顶层阅读判定 → `state.update`（从验收稿回流状态）→ 下一章。编辑模式为逐章闭环，`state.update` 在 `edit.commit` 后执行。完整链路见 `skills/writing.md` 与 `skills/dispatch.md`。
+顺序链路中每章一个小循环（写作模式）：`prompt.create`（读上一章真实正文 + 当前状态文件）→ `prompt.review`（默认逐章审计）→ `write.draft`（writer ×1）→ 顶层阅读判定 → `state.update`（从验收稿回流状态）→ 下一章。编辑模式**逐章写作、幕末批量审读**，`state.update` 在 `edit.commit` 后逐章执行。完整链路见 `skills/writing.md` 与 `skills/dispatch.md`。
 
 每章仍形成独立的 `prompts/vol-N-ch-M.md`。全部目标章节完成草稿后进入 `drafts.ready`（写作模式终点）。规划层职责不变：章纲仍是蓝图，Prompt 以前一章真实正文为准；正文实际发展偏离章纲时，按既有"回退规划层"机制修正对应章纲。
