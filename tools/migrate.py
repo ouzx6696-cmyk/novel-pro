@@ -22,8 +22,8 @@ for stream in (sys.stdin, sys.stdout, sys.stderr):
         pass
 
 
-CURRENT_RUNTIME_PROFILE = "novel-pro-0.2"
-CURRENT_SKILL_VERSION = "5.2"
+CURRENT_RUNTIME_PROFILE = "novel-pro-0.3"
+CURRENT_SKILL_VERSION = "5.3"
 SOURCE_FILE = Path(".agent") / ".runtime-source"
 REPORT_DIR = Path(".migration")
 REPORT_JSON = REPORT_DIR / "report.json"
@@ -56,12 +56,16 @@ NORMAL_STEPS = {
     "outline.volume",
     "outline.acts",
     "outline.chapters",
-    "prompts.ready",
     "draft.write",
     "drafts.ready",
-    "review",
     "volume.complete",
     "book.complete",
+}
+# v0.2 长期阶段在 v0.3 顺序链路下的落点：prompts.ready（批量 Prompt 就绪）
+# 与 review（批量冷读返修）均已并入 draft.write（逐章顺序链路）。
+LEGACY_STEP_MAP = {
+    "prompts.ready": "draft.write",
+    "review": "draft.write",
 }
 REQUIRED_MIGRATION_FIELDS = (
     "state",
@@ -165,7 +169,7 @@ def resolve_skill_root(source_project, cli_skill_root):
 def story_value(project_root, key):
     project_root = Path(project_root)
     pattern = re.compile(
-        rf"(?m)^[ \t]*-?[ \t]*{re.escape(key)}[ \t]*:[ \t]*['\"]?([^'\"\s]+)"
+        rf"(?m)^[ \t]*-?[ \t]*(?:\*\*)?{re.escape(key)}(?:\*\*)?[ \t]*:[ \t]*['\"]?([^'\"\s]+)"
     )
     for name in ("story.md", "story.yaml"):
         story = project_root / name
@@ -273,7 +277,7 @@ def classify_unmapped(rel, runtime_targets):
 
 
 def replace_story_key(lines, key, value):
-    pattern = re.compile(rf"^([ \t]*-?[ \t]*{re.escape(key)}[ \t]*:[ \t]*).*$")
+    pattern = re.compile(rf"^([ \t]*-?[ \t]*(?:\*\*)?{re.escape(key)}(?:\*\*)?[ \t]*:[ \t]*).*$")
     for index, line in enumerate(lines):
         match = pattern.match(line)
         if match:
@@ -358,8 +362,12 @@ def resume_step(source_project):
     status = source_project / ".agent/status.yaml"
     if status.is_file():
         match = re.search(r"(?m)^\s+step:\s*([^\s]+)", read_text(status))
-        if match and match.group(1) in NORMAL_STEPS:
-            return match.group(1)
+        if match:
+            step = match.group(1)
+            if step in NORMAL_STEPS:
+                return step
+            if step in LEGACY_STEP_MAP:
+                return LEGACY_STEP_MAP[step]
     return "outline.volume"
 
 
@@ -432,7 +440,17 @@ def copy_source_content(source_project, staging, target_project_name, skill_root
                 raise RuntimeError(f"迁移目标路径是符号链接: {rel_text}")
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(path, target)
-            transferred.append({"source": rel_text, "target": rel_text, "kind": "copied"})
+            kind = "copied"
+            note = ""
+            if rel.parts and rel.parts[0] == "prompts" and rel.suffix == ".md":
+                contract = re.search(r"(?m)^prompt_contract\s*:\s*(\d+)", read_text(path))
+                if contract and int(contract.group(1)) < 4:
+                    kind = "copied-legacy-prompt"
+                    note = "旧版 contract Prompt（缺前情上下文/角色初始状态/信息差变化）；顺序链路首次触达该章时回 prompt.create 重建"
+            item = {"source": rel_text, "target": rel_text, "kind": kind}
+            if note:
+                item["note"] = note
+            transferred.append(item)
             continue
         category, cleanable = classify_unmapped(rel, runtime_targets)
         item = {"path": rel_text, "category": category}
@@ -579,9 +597,11 @@ def render_report(report):
         "",
     ]
     completed = report.get("completed_files", [])
-    lines.extend(
-        f"- `{item['source']}` → `{item['target']}` ({item['kind']})" for item in completed
-    )
+    for item in completed:
+        line = f"- `{item['source']}` → `{item['target']}` ({item['kind']})"
+        if item.get("note"):
+            line += f" — {item['note']}"
+        lines.append(line)
     if not completed:
         lines.append("- 无")
     lines.extend(["", "## 对比新版技能缺失的内容文件", ""])
@@ -631,6 +651,9 @@ def render_report(report):
             f'`python tools/migrate.py cleanup "{report["target_project"]}" --confirm`',
             "",
             "清理只删除报告列出的旧运行时文件，不删除正文、规划、设定、任务历史或人工未映射文件。",
+            "",
+            "旧版 Prompt（contract-3 及更早）不满足 v0.3 顺序链路的前情要求：",
+            "顺序链路首次触达对应章节时，顶层应回 `prompt.create` 按 contract-4 重建（前情取自真实正文、角色初始状态取自已回流的状态文件）。",
         ]
     )
     return "\n".join(lines).rstrip() + "\n"

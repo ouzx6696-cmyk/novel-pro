@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deployment surface for the novel-pro v0.2 project runtime."""
+"""Deployment surface for the novel-pro v0.3 project runtime."""
 
 from pathlib import Path
 
@@ -10,6 +10,7 @@ AGENT_FILES = [
     "chapter-planner.md",
     "completion-editor.md",
     "completion-reviewer.md",
+    "continuity-updater.md",
     "edit-synthesizer.md",
     "novel-agent.md",
     "prompt-crafter.md",
@@ -41,6 +42,7 @@ SKILL_FILES = [
     "planning.md",
     "prompt.md",
     "review-archive.md",
+    "state-sync.md",
     "volume-alignment.md",
     "writer-construction.md",
     "writing.md",

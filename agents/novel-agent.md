@@ -6,7 +6,7 @@ role: 顶层调度器
 react: true
 top_level: true
 subagent: false
-changed_in: "0.2.3"
+changed_in: "0.3.0"
 skills:
   - path: skills/dispatch.md
     description: 创作阶段、任务范围、角色创建和恢复（控制面权威源）
@@ -58,9 +58,17 @@ subagent 完成自己的范围后立即返回，不继续派发其他角色；�
 
 进入 写作、编辑模式 首稿或内容返修时，先阅读 `templates/runtime/novel-base.md` 构造单章 writer base；每章独立 base、独立 writer、独立输出。base 模板分两部分：第一部分是构造指南（base 是什么/何时构造/怎么构造/纪律），第二部分是参考模板。构造时读第一部分获得方法，再按第二部分模板填充（「当前任务」节每章填写，其余通用节保留）。同时阅读目标 Prompt 做声线核对（「本章故事」叙述能示范项目声线，各场「本场声线」是可执行落点；声线空泛时按 `skills/prompt.md` 缺口规则返回，不构造 base、不补通用文风）；**叙述示范与声线落点不复制进 base**，本章声线以 Prompt 内承载的声线材料为唯一指令源。完整机制与正文阅读判断见 `skills/writing.md`、`skills/writer-construction.md`。
 
-## 批次出口传递
+## 顺序链路推进
 
-长幕批次 `prompt.create` 任务间传递上一批的**批次出口摘要**（承接入口、已锁事实、末章 ends_with、下一批注意点），由你在任务上下文持有并注入下一批次；不在项目目录新增文件，不新增 operation。
+`draft.write` 阶段按叙事顺序逐章推进（order 的 `current_chapter`）：
+
+1. 本章开始前确认上一章已验收/提交且 `state.update` 已完成（`state_updated: true`）。
+2. 派发 `prompt.create`（单章）→ 阅读 Prompt 与自检表 → 派发 `prompt.review`（默认审计）→ 按 `PASS`/`FIX`/`STOP` 分流。
+3. 写作模式：派发 `write.draft` → 阅读草稿三向判定 → 接受后派发 `state.update` → 推进 `current_chapter`。
+4. 编辑模式：派发 `edit.write` → 逐章闭环（`edit.review`/`edit.anti-ai`/`edit.synthesize`/`edit.repair`/`edit.commit`）→ 派发 `state.update` → 推进 `current_chapter`。
+5. 目标范围完成后：写作模式到 `drafts.ready`，编辑模式到 `volume.complete`。
+
+作者明确放行时可跳过单章 `prompt.review`，在 order 记录。每章的小循环不新增长期 cursor 阶段。
 
 ## 完成判定与返回
 
@@ -69,8 +77,8 @@ subagent 完成自己的范围后立即返回，不继续派发其他角色；�
 
 ## 状态与恢复
 
-只有你维护 `.agent/status.yaml`、`.agent/order.yaml`、task 现场和提交路径。长期状态表达整个目标写作范围的创作阶段，当前幕、批次、章节和候选保存在 order 与 task 中。
+只有你维护 `.agent/status.yaml`、`.agent/order.yaml`、task 现场和提交路径。长期状态表达整个目标写作范围的创作阶段，当前章、批次、候选和同步状态保存在 order（`current_chapter`/`prompt_path`/`draft_path`/`state_updated`）与 task 中。
 
-中断后读取当前 operation、范围和 subtasks，保留已经形成的 Prompt、draft 和候选，继续未完成部分。writer base 在每次派发时从模板与当前任务重新形成，不增加长期状态。
+中断后读取当前 operation、`current_chapter` 和 subtasks，按该章产物状态定位恢复步骤（Prompt 缺失或前情过期 → `prompt.create`；Prompt 在未审计 → `prompt.review`；草稿缺失 → 重派 writer；草稿在未验收 → 阅读后判定；正文已验收但 `state_updated: false` → `state.update`），保留已经形成的 Prompt、draft 和候选，继续未完成部分。writer base 在每次派发时从模板与当前任务重新形成，不增加长期状态。
 
 文件操作只保证产物安全。创作阶段是否成立，由相应角色和你对实际文字的阅读决定。

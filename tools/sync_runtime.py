@@ -20,7 +20,7 @@ for stream in (sys.stdin, sys.stdout, sys.stderr):
 
 
 SOURCE_FILE = Path(".agent") / ".runtime-source"
-CURRENT_RUNTIME_PROFILE = "novel-pro-0.2"
+CURRENT_RUNTIME_PROFILE = "novel-pro-0.3"
 REQUIRED_MIGRATION_FIELDS = (
     "state",
     "phase",
@@ -63,7 +63,7 @@ def story_version(project_root):
     if not story.is_file():
         return None
     match = re.search(
-        r"(?m)^[ \t]*-?[ \t]*skill_version[ \t]*:[ \t]*['\"]?([^'\"\s]+)",
+        r"(?m)^[ \t]*-?[ \t]*(?:\*\*)?skill_version(?:\*\*)?[ \t]*:[ \t]*['\"]?([^'\"\s]+)",
         read_text(story),
     )
     return match.group(1) if match else None
@@ -74,7 +74,7 @@ def runtime_profile(project_root):
     if not story.is_file():
         return None
     match = re.search(
-        r"(?m)^[ \t]*-?[ \t]*runtime_profile[ \t]*:[ \t]*['\"]?([^'\"\s]+)",
+        r"(?m)^[ \t]*-?[ \t]*(?:\*\*)?runtime_profile(?:\*\*)?[ \t]*:[ \t]*['\"]?([^'\"\s]+)",
         read_text(story),
     )
     return match.group(1) if match else None
@@ -228,7 +228,7 @@ def write_runtime(project_root, manifest):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Sync the current novel-pro v0.2 runtime")
+    parser = argparse.ArgumentParser(description="Sync the current novel-pro v0.3 runtime")
     parser.add_argument("project_root")
     parser.add_argument("--skill-root")
     parser.add_argument("--check", action="store_true")

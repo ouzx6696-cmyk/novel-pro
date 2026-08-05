@@ -36,6 +36,7 @@ act-planner 先读取已确认卷纲、本卷必要设定、`foreshadowing.md`�
 - `continuity_contract`：事实主体、有效阶段、唯一事件归属和退出交接。
 - `chapter_roles`：幕内各章的功能和状态变化。
 - `end_state`：下一幕能够直接承接的具体状态。
+- 可选：`## 设定变更通知` 块——本幕规划确认会改变项目事实（新角色、关系/能力/世界变化、时间线或伏笔新条目）时追加（规范见 `templates/acts/vol-N-act-K.md`「设定变更通知」节）。通知不是事实，只有正文兑现并验收后由 `state.update` 消费并写入 `settings/`，同时从源文件移除。
 
 ## 幕间承接
 

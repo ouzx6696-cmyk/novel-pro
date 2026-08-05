@@ -1,7 +1,7 @@
 ---
 act_map_contract: 1
 volume: {N}
-template_version: "0.2.3"
+template_version: "0.3.0"
 required_fields: [acts, adjacent_transitions]
 ---
 

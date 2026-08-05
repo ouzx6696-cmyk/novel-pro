@@ -1,9 +1,9 @@
 ---
-character_contract: 1
+character_contract: 2
 character_id: "{角色英文ID，如protagonist、antagonist-zhang}"
 character_name: "{角色中文全名}"
-template_version: "0.2.3"
-required_fields: [basic_info, desires, fears, capabilities, relationships]
+template_version: "0.3.0"
+required_fields: [basic_info, cognitive_layers, desires, fears, capabilities, relationships, state_history]
 optional_fields: [values, blind_spots, arc_trajectory, notes]
 ---
 
@@ -20,6 +20,28 @@ optional_fields: [values, blind_spots, arc_trajectory, notes]
 - **标志性习惯**：{有辨识度的动作/说话方式/习惯（如果有）}
 
 **注意**：不要堆砌无关信息（如血型、星座），只写实际会在情节中使用的事实。
+
+## cognitive_layers（认知6层模型）
+
+**填写说明**：六层模型决定人物什么可变、什么不可变，是状态变更与信息差管理的理论框架。务虚三层（为什么做）越往上越难改变；务实三层（怎么做）随剧情可自然变化。剧情推动的实质是"下三层在变，上三层被动摇"——**上三层的改变必经非常磨难**，没有重大事件支撑不得在正文中悄悄改变。
+
+```markdown
+务虚（为什么做）          务实（怎么做）
+层1 世界观   ←难         层4 能力    ←可变
+  ↓                       ↓
+层2 我的定位 ←难         层5 技能    ←可变
+  ↓                       ↓
+层3 价值观   ←难         层6 环境    ←可变
+```
+
+- **层1 世界观**：{人物对世界如何运转的底层认知}
+- **层2 自我定位**：{人物在关系/组织中认为自己是谁}
+- **层3 价值观**：{驱动选择的优先级排序}
+- **层4 能力**：{实力等级、身体与资源状态，随剧情可变}
+- **层5 技能**：{掌握的技能领域，随剧情可变}
+- **层6 环境**：{出身、关系网、生存环境，随剧情可变}
+
+**与既有节的关系**：desires/fears 主要落在层 2-3，capabilities 落在层 4-5，blind_spots 是层间错位（对某一层的认知与实际不符）。变更状态时标注影响哪些层；层 1-3 变化必须在 `state_history` 中注明支撑事件。
 
 ## desires（欲望引擎）
 
@@ -166,6 +188,40 @@ optional_fields: [values, blind_spots, arc_trajectory, notes]
 - **避免模式**：{这个人物不能写成什么样}
 - **与作者确认项**：{需要作者确认的边界}
 
+## state_history（状态变更历史，追加式维护）
+
+**填写说明**：由 `state.update`（continuity-updater）在每个已验收章节后**追加**状态变更块，只追加不覆盖；planner 与 prompt-crafter 从最近的块倒读，重建人物"截至当前章"的状态与知识存量。块按章节锚点追加，幂等——同一章节已存在则跳过。写作模式验收草稿后与编辑模式 `edit.commit` 后都会追加。详细规则见 `skills/state-sync.md`。
+
+```markdown
+## vol-{N}-ch-{M} 状态变更
+- **位置：** {人物本章结束时的位置}
+- **状态：** {人物当前状态简述：身体/资源/处境}
+- **人际关系变化：** {与谁的关系发生了什么性质变化，无则空}
+- **能力/状态变化：** {能力或资源变化，标注影响的认知层；层1-3变化注明支撑事件}
+- **本章关键台词/行为：** {一句最能代表本章状态的台词或行为}
+
+### 剧情履历
+#### 第 {N} 卷第 {M} 章
+- **行为：** {人物本章实际做的事——击杀/选择/拯救/背叛等，含对象和结果}
+- **关系变化：** {与谁的关系发生了什么性质变化，无则空}
+
+### 情绪弧线
+#### 第 {N} 卷第 {M} 章
+- **情绪状态：** {愤怒/压抑/释然/期待/恐惧/温情/决心}
+- **触发事件：** {触发事件描述}
+- **强度：** {0-10}
+- **弧线方向：** {上升/回落/持平/转折}
+- **表达方式：** {身体反应/行为/对话/环境互动}
+
+### 信息持有
+#### 第 {N} 卷第 {M} 章
+- **知道：** {本章结束后人物确定知道的信息}
+- **不知道：** {本章结束后人物仍不知道的信息}
+- **误判：** {人物正在坚持的错误判断，无则空}
+```
+
+**注意**：状态变更块是**事实记录**，只写正文已兑现的内容；规划承诺但正文未发生的不写。旧档案（contract-1）迁移时补充空节，由后续章节逐步填充。
+
 ---
 
 ## 填写指引
@@ -173,6 +229,7 @@ optional_fields: [values, blind_spots, arc_trajectory, notes]
 ### 何时填写
 - 由 volume-planner 在初始化或规划阶段创建主要人物卡
 - 由 act-planner、chapter-planner 在发现需要补充细节时更新
+- **state_history 节由 `state.update`（continuity-updater）在每章验收/提交后追加，planner 不手动维护**；planner 只通过「设定变更通知」提出变更需求
 - 存储在 `settings/character-setting/` 目录下
 
 ### 与知识库对应关系

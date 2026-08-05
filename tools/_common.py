@@ -35,7 +35,7 @@ def looks_like_skill_root(path, min_markers=4):
     return path.is_dir() and sum((path / marker).exists() for marker in SKILL_MARKERS) >= min_markers
 
 
-_VERSION_RE = re.compile(r"(?m)^\s*-?\s*skill_version\s*:\s*['\"]?([^'\"\s]+)")
+_VERSION_RE = re.compile(r"(?m)^\s*-?\s*(?:\*\*)?skill_version(?:\*\*)?\s*:\s*['\"]?([^'\"\s]+)")
 
 
 def story_version(path):

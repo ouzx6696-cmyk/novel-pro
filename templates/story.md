@@ -1,5 +1,5 @@
 ---
-template_version: "0.2.3"
+template_version: "0.3.0"
 required_fields: [skill_version, runtime_profile, genre, main_story]
 ---
 
@@ -9,8 +9,8 @@ required_fields: [skill_version, runtime_profile, genre, main_story]
 
 **填写说明**：项目元数据，初始化时自动生成，不要手动修改。
 
-- **skill_version**: 5.2
-- **runtime_profile**: novel-pro-0.2
+- **skill_version**: 5.3
+- **runtime_profile**: novel-pro-0.3
 - **题材**: {{genre}} （对应 `knowledge/genre/` 中的 genre_id）
 - **状态**: planning （planning/writing/editing/completed）
 

@@ -17,7 +17,7 @@
 
 1. **底座层（必选，跨题材）**：读取 `knowledge/webnovel/index.md`（连载基线，含 `fanqie-baseline.md`）、`knowledge/scene/index.md`（含自包含提示词方法 `self-contained-prompt.md`）、`knowledge/plot/index.md`（冲突/钩子/节奏/伏笔等本卷用得到的剧情方法；**不含幕拆解方法 `act-decomposition.md`**——那是 act-planner 的拆幕方法，prompt-crafter 不拆幕，不进包）、`knowledge/character/index.md`；按本卷叙事重心从 scene/plot/character 选择子文件（见下方「建包子文件选择清单」）。
 2. **类型层（叠加，按题材）**：读取 `knowledge/genre/index.md`（+父题材速写）与 `settings/genre-setting.md` 的已确认题材期待，叠加当前 `genre_id` 的题材画像。
-3. 把底座方法与题材差异裁剪压缩为 8 节（读者与节奏基线、题材执行要点、冲突、钩点与节奏方法、场景写法工具箱[按场景性质分条索引，含自包含提示词方法]、人物决策与对手压力、文风提取接口[全章基调 + 逐场落点两层提取]、禁用与边界、使用纪律）。
+3. 把底座方法与题材差异裁剪压缩为 8 节（读者与节奏基线、题材执行要点、冲突、钩点与节奏方法、场景写法工具箱[按场景性质分条索引，含自包含提示词方法]、人物决策与对手压力、文风提取接口[风格提示词指示句 + 两层提取 + 文章结构]、禁用与边界、使用纪律）。
 4. 写入 `settings/context-pack.md`，头部 frontmatter 记录 `pack_contract`、`volume`、`genre_id`、`parent_genre`、`formed_by`、`sources`、`style_pointer`。
 5. 继续完成本任务范围的章级 Prompt（同一任务内，不新增 operation）。
 
@@ -34,12 +34,14 @@
 
 低频场景（死亡场景、群戏、调查、环境、体术动作、破案）不列入清单，出现时按 `补包` 规则单点补读对应 `scene/<file>.md`。建包返回摘要必须列出实际选用的底座子文件，顶层据此核对是否与卷重心一致。
 
+**角色类跨重心默认叠加**：无论叙事重心，角色类必选都加读 `character/arc-continuity.md`（含认知6层可变性规则与状态变更记录方法）——它是「角色初始状态」块与角色认知重建的依据（`state_history` 倒读规则），属于顺序链路的默认方法，不因重心选择而省略。
+
 **类型层不进入清单选择**：按 `genre_id` 读对应题材画像（含父题材速写），题材差异直接进包第 2 节「题材执行要点」与第 7 节「禁用与边界」。
 
 ## 用包（后续每个 prompt.create 任务）
 
 - 读 `settings/context-pack.md`（1 个文件）替代 `knowledge/` 下钻（8–18 个文件）。
-- `settings` 事实文件、幕纲、章纲、承接入口照常按章筛读。
+- `settings` 事实文件、幕纲、章纲、承接入口照常按章筛读；**承接入口在顺序链路下特指上一章真实正文（验收稿或已提交正文）**——前情三件套与角色当前状态从正文与 `state_history` 提取，不由 pack 承担。
 - `settings/writing-style.md` 仍每任务读（它是项目确认物、叙述示范与声线落点的源头，保留；pack 第 6 节固化的是"怎么提取"，省去的是推理成本而非这次读取）。
 - 每章 Prompt 只取本章所需，不把包整段搬进 Prompt；同章多场、多章之间不得复诵同一条技法指令原文，每次取用必须落到当场的人、事、物上；不把方法名、来源名、术语写进 Prompt 或正文产物。
 
@@ -67,7 +69,7 @@ parent_genre: {父题材或空}
 formed_by: prompt.create 首任务（vol-N-act-K）
 sources: [实际选用的知识文件清单；按子目录分布，plot 不含 act-decomposition.md，scene 含 self-contained-prompt.md]
 style_pointer: settings/writing-style.md
-knowledge_version: "0.2.3"  # 建包时的知识库版本
+knowledge_version: "0.3.0"  # 建包时的知识库版本
 last_updated: "vol-N-act-K"  # 最后更新的任务标识
 patch_notes: []  # 补包记录，格式：{task: "vol-N-act-K", file: "scene/investigation.md", reason: "悬疑场景"}
 summary: {可选：建包返回摘要，供顶层抽查}

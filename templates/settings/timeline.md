@@ -1,5 +1,5 @@
 ---
-template_version: "0.2.3"
+template_version: "0.3.0"
 description: "项目时间线，记录影响承接的已确认时间事实"
 required_fields: [event, date_time, location, consequences]
 optional_fields: [who_knows, dependencies, evidence]
@@ -127,8 +127,14 @@ optional_fields: [who_knows, dependencies, evidence]
 
 ### 何时填写
 - 规划阶段：planner 在创建幕纲/章纲时，将关键时间锚点写入
-- 创作阶段：正文写入 `texts/` 后，由顶层或作者补充实际发生的时间事实
+- 创作阶段：正文验收/提交后，由 `state.update`（continuity-updater）从**真实正文**提取实际发生的时间事实并**追加**条目；顶层或作者可在其核对后补充/修正。写作模式在草稿验收后追加，编辑模式在 `edit.commit` 后追加
 - 返修阶段：如果时间线冲突，更新时间线后重新规划
+
+### 追加规则（state.update）
+- **按章节锚点追加**：条目头部标注来源章节（`### vol-{N}-ch-{M}：{事件名称}`），同章节同事件已存在则跳过（幂等）
+- **只写正文已兑现的事实**：没有证据的事件不写入（证据字段指向 `drafts/` 验收稿或 `texts/` 定稿）
+- **宁少勿多**：只记录影响后续承接的关键事件；日常过渡、无后果的对话不记录
+- **修正优先**：正文与规划时间不一致时，以正文为准追加/修正，并回告顶层
 
 ### 不要记录的内容
 ❌ 纯描述性事件（主角吃了早饭）

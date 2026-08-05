@@ -9,6 +9,11 @@ batch:
   index: 1
   total: 1
 current_act: 1
+current_chapter: ""       # 顺序链路当前章，如 vol-N-ch-M；逐章推进
+prompt_path: ""           # 当前章 Prompt 路径
+draft_path: ""            # 当前章草稿（写作模式）/正文（编辑模式）路径
+prompt_version: ""        # 当前章 Prompt 版本（prompt_contract），审计与恢复用
+state_updated: false      # 当前章状态同步（state.update）是否已完成
 subtasks: []
 attempt: 1
 feedback_path: ""

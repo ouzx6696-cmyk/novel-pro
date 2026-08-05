@@ -143,22 +143,28 @@ Agent会：
 
 ---
 
-### 第5步：创建Prompt并写作（2分钟）
+### 第5步：顺序链路创建Prompt并写作（2分钟）
 
 ```
-我：创建第1幕的Prompt
+我：开始写第1章（写作模式）
 
-Agent会：
-1. 调用prompt-crafter
-2. 从知识库压缩打包context-pack
-3. 为每章创建自包含Prompt
+Agent会（顺序链路，逐章推进）：
+1. 调用prompt-crafter创建第1章Prompt
+2. 本卷首任务从知识库压缩打包context-pack
+3. 从上一章真实正文提取前情三件套 + 状态文件倒读角色初始状态
+4. 调用prompt-reviewer默认审计（9维度）
+5. 调用writer写第1章草稿
+6. 顶层阅读判定，验收后 state.update 回流状态
+7. 再创建第2章Prompt（前情直接取自第1章真实草稿）
 ```
 
-**Prompt包含四节**：
+**Prompt包含六块**：
+- 前情上下文（上章结尾画面/情绪残留/缺口，取自真实正文）
 - 本章故事（叙述示范）
+- 角色初始状态（位置/状态/已知信息/持有物）
 - 人物动机与情绪（起点→施压→落点）
 - 场景展开（每场的行动脉络+声线落点）
-- 必守事实与边界
+- 必守事实与边界（含信息差变化）
 
 **选择模式**：
 
@@ -475,13 +481,13 @@ python tools/migrate.py <旧项目路径> <新项目路径>
 | outline.volume | 正在规划卷纲 |
 | outline.acts | 正在规划幕纲 |
 | outline.chapters | 正在规划章纲 |
-| prompts.ready | Prompt已就绪，可以开始写作 |
-| draft.write | 正在写作 |
+| draft.write | 顺序链路：逐章 Prompt 创建/审计/写作/编辑/状态同步 |
 | drafts.ready | 草稿已完成（写作模式终点） |
-| review | 正在编辑模式验收 |
 | volume.complete | 当前卷已完成 |
 | book.complete | 全书已完成 |
 | migration.review | 迁移报告等待复核（迁移期间） |
+
+顺序链路下没有"Prompt 批量就绪"节点：Prompt 跟随正文顺序逐章创建，第 N+1 章 Prompt 的前情直接取自第 N 章真实验收稿。
 
 ---
 

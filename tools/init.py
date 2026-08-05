@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Initialize a novel-pro v0.2 project."""
+"""Initialize a novel-pro v0.3 project."""
 
 import argparse
 import os
@@ -307,7 +307,7 @@ def select_genre():
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="初始化 novel-pro v0.2 小说项目。")
+    parser = argparse.ArgumentParser(description="初始化 novel-pro v0.3 小说项目。")
     parser.add_argument("project_path", nargs="?", default=str(Path.cwd()))
     parser.add_argument("--genre", type=int, help=f"题材编号 1-{len(GENRES)}")
     parser.add_argument("--genre-name", help="直接指定题材名称（替代 --genre 编号）；用于项目迁移时保留原题材。")

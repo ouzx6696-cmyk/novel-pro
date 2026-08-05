@@ -3,7 +3,7 @@ act_contract: 1
 volume: {N}
 act: {K}
 act_label: "{幕名称，如'入局'、'试探'、'摊牌'等}"
-template_version: "0.2.3"
+template_version: "0.3.0"
 required_fields: [dramatic_task, start_state, conflict_development, character_arcs, information, emotional_curve, promises, setting_constraints, continuity_contract, chapter_roles, end_state]
 ---
 
@@ -137,6 +137,20 @@ required_fields: [dramatic_task, start_state, conflict_development, character_ar
 - **世界状态变化**：{本幕改变了什么世界事实}
 - **关系新格局**：{人物关系的不可逆变化}
 - **读者收束感受**：{读者在本幕末应有什么感受：悬念/压力/期待/满足}
+
+---
+
+## 设定变更通知（可选，有需要时追加）
+
+**填写说明**：本幕规划确认了会改变项目事实的变更（新角色、关系/能力/世界变化、时间线或伏笔新条目）时，追加此块；由 `state.update` 在对应章节验收/提交后消费并**从源文件中移除**，防止重复消费。通知不是事实——只有正文兑现并验收后，变更才由 state.update 写入 `settings/`。详细消费规则见 `skills/state-sync.md`。
+
+```markdown
+## 设定变更通知
+- **目标：** settings/character-setting/{id}.md 或 settings/{world-setting|timeline|foreshadowing}.md
+- **类型：** 状态更新 / 新角色 / 世界观更新 / 时间线 / 伏笔
+- **原因：** {为什么需要这个变更}
+- **详情：** {具体变更描述，写清从什么变成什么}
+```
 
 ---
 
