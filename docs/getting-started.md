@@ -202,8 +202,8 @@ Agent会（顺序链路，逐章推进）：
   - 提供骨架和字段
     ↓
 技能层（skills/ + agents/）
-  - 14个skill模块
-  - 12个agent角色
+  - 15个skill模块（含 state-sync）
+  - 13个agent角色（含 continuity-updater）
     ↓
 知识层（knowledge/）
   - 通用写作底座（跨题材）

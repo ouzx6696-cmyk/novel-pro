@@ -250,28 +250,60 @@ A: 详细到act-planner能据此拆幕。如果拆不出来，说明还不够具
 | 字段 | 对应卷纲字段 | 对应章纲字段 |
 |---|---|---|
 | conflict_development | 冲突阶梯某一级 | 章 `conflict` |
-| information | 卷级信息差弧线某段 | 章 `characters` 的信息差轨迹 |
+| information | 卷级信息差弧线某段 | 章 `info_gap`（信息差轨迹） |
 | character_arcs | 人物弧线某段 | 章 `characters` 的人物状态 |
+
+---
+
+### 4. chapters/vol-N-ch-M.md - 章纲（contract-2，九必填字段）
+
+**位置**：`chapters/vol-N-ch-M.md`（每章一个）；幕纲完成后由 chapter-planner 按幕顺序形成，并生成幕级承接快照 `chapters/vol-N-act-K-handoff.md`。
+
+**用途**：把幕的阶段变化拆成连续可执行的单章蓝图。章纲是**蓝图**——顺序链路下 Prompt 逐章创建，前情以真实正文为准；正文实际发展偏离章纲时回退规划层修正。
+
+**九必填字段**：
+
+| 字段 | 作用 | 要点 |
+|---|---|---|
+| goal | 本章必须完成的变化 | 故事/关系/认知的变化，不是剧情点清单 |
+| reader_effect | 读者期待管理 | 回应/加深/转移具体问题 |
+| conflict | 关键人物目标/筹码/阻力 | 不可退让的理由 |
+| characters | 已知/未知/误判/关系位置 | 只列本章出场并实际作用的人物 |
+| info_gap | 信息差轨迹 | 知道/不知道清单 + 关系 + 开场→结尾变化；缺少时从幕纲反推补齐 |
+| scenes | 每场行动-反制-选择过程 | 入场/目标/阻力/策略/反制/转折/选择/结果/下一步；标注主导性质 |
+| must_hold | 承接事实与约束 | 可拆 must_resolve/must_hold/partial_advance 三清单 |
+| chapter_end_state | 章末状态快照 | 每出场角色位置/状态/关系/能力变更，"从什么变成什么"，供 state.update 核对 |
+| ends_with | 最终动作/画面 | 下一章需要承接的状态 |
+
+**设定变更通知（可选）**：规划确认会改变项目事实（新角色/关系/能力/世界/时间线/伏笔）时，章纲末尾追加通知块；正文兑现并验收后由 state.update 消费并移除，防止重复消费。通知不是事实——正文没有兑现就不能写入 settings。
+
+**字段链**：幕纲 start_state/end_state → 章纲 info_gap/chapter_end_state → Prompt 前情上下文/角色初始状态/必守事实与边界。
 
 ---
 
 ## 设定模板
 
-### 4. characters/character-profile.md - 人物卡
+### 5. characters/character-profile.md - 人物卡（contract-2）
 
 **位置**：`settings/character-setting/{character-id}.md`
 
-**用途**：记录人物的决策引擎（欲望/恐惧/能力/盲区），不是履历表。
+**用途**：记录人物的决策引擎（欲望/恐惧/能力/盲区）与**状态历史**，不是履历表。
 
 **何时填写**：
 - volume-planner 创建主要人物
 - 规划时发现需要补充时更新
+- **`state_history` 节由 state.update（continuity-updater）在每章验收/提交后按章追加**，planner 不手动维护；规划需要变更时通过「设定变更通知」提出
 
 #### 核心原则
 
 人物卡是**决策引擎**，不是设定集。反复问："这条信息会改变人物的某个选择吗？"不会就删。
 
 #### 关键字段
+
+**cognitive_layers（认知6层模型）**：决定什么可变、什么不可变
+- 务虚三层（世界观/自我定位/价值观）越往上越难改变，改变必经非常磨难
+- 务实三层（能力/技能/环境）随剧情可自然变化
+- 剧情推动的实质是"下三层在变，上三层被动摇"
 
 **desires（欲望）**：人物想要什么
 - 表层目标（短期可见）
@@ -293,6 +325,11 @@ A: 详细到act-planner能据此拆幕。如果拆不出来，说明还不够具
 - 对他人的误判
 - 对局势的误判
 
+**state_history（状态变更历史）**：state.update 按章追加
+- 每章一个 `## vol-N-ch-M 状态变更` 块（位置/状态/关系/能力/关键台词 + 剧情履历 + 情绪弧线 + 信息持有）
+- 幂等：同章节锚点已存在则跳过；只追加不覆盖
+- prompt-crafter 倒读最近块重建角色当前状态与知识存量
+
 #### 填写技巧
 
 1. **只写影响行动的信息**
@@ -307,9 +344,12 @@ A: 详细到act-planner能据此拆幕。如果拆不出来，说明还不够具
    - ✅ 过度自信、无法识破伪装、对感情迟钝
    - ❌ 能力不足（太抽象）
 
+4. **状态历史只记正文已兑现的事实**
+   - 规划承诺但正文未发生的不写；正文与规划不符以正文为准
+
 ---
 
-### 5. settings/timeline.md - 时间线
+### 6. settings/timeline.md - 时间线
 
 **位置**：`settings/timeline.md`
 
@@ -359,7 +399,7 @@ A: 详细到act-planner能据此拆幕。如果拆不出来，说明还不够具
 
 ---
 
-### 6. settings/writing-style.md - 项目文风（风格提示词）
+### 7. settings/writing-style.md - 项目文风（风格提示词）
 
 **位置**：`settings/writing-style.md`
 
@@ -431,7 +471,7 @@ style/原型
 
 ---
 
-### 7. settings/context-pack.md - 知识预制包
+### 8. settings/context-pack.md - 知识预制包
 
 **位置**：`settings/context-pack.md`
 
@@ -470,7 +510,7 @@ style/原型
 
 ## 配置文件
 
-### 8. CLAUDE.md - 项目配置
+### 9. CLAUDE.md - 项目配置
 
 **位置**：项目根目录 `CLAUDE.md`
 
@@ -538,6 +578,8 @@ graph TD
     E --> F[prompts/vol-N-ch-M.md]
     F --> G[drafts/vol-N-ch-M.md]
     G --> H[texts/vol-N-ch-M.md]
+    H -.幕末章 state.update.-> S[summaries/vol-N-act-K.md]
+    S -.跨幕首章 prompt-crafter.-> F
     
     I[characters/character-profile.md] --> B
     I --> D
@@ -557,6 +599,7 @@ graph TD
     style A fill:#e1f5ff
     style F fill:#fff4e1
     style H fill:#e8f5e9
+    style S fill:#fff8e1
 ```
 
 **图例**：
