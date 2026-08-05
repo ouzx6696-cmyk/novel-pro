@@ -42,7 +42,7 @@ Novel Desk 是可选的本地作者工作台。Desk 存在时，双方仅通过�
 
 负责"在什么状态、触发什么操作、创建什么角色"。**novel-agent 是唯一写入者**。
 
-- **status.yaml**：长期创作位置。记录 `cursor.step`（9 个阶段）。
+- **status.yaml**：长期创作位置。记录 `cursor.step`（8 个阶段）。
 - **order.yaml**：临时任务窗口。记录 `order.operation`（18 种操作）与顺序链路的 `current_chapter`。
 - **dispatch.md**：派发契约。18 张操作派发卡定义每个 operation 的触发、模块、角色、输入、输出、完成判定、下一跳和恢复。
 - **novel-agent**：顶层调度器。读取 status/order → 查 dispatch 派发卡 → 加载 skill 模块 → 创建 subagent → 收回产物 → 判断 → 更新状态。
@@ -183,7 +183,7 @@ story.md（题材方向）
 
 ## 四、状态机
 
-### 长期 cursor（9 阶段）
+### 长期 cursor（8 阶段）
 
 ```
 outline.volume → outline.acts → outline.chapters
@@ -228,7 +228,7 @@ outline.volume → outline.acts → outline.chapters
 
 所有扩展必须遵守的不变量：
 
-- **cursor 状态机**：9 阶段结构不变
+- **cursor 状态机**：8 阶段结构不变
 - **所有权边界**：novel-agent 仍是唯一控制面写入者；continuity-updater 只追加 settings/ 状态历史区
 - **冷读纪律**：Reader/completion-reviewer 首读不预挂知识
 - **顺序链路**：Prompt 跟随正文顺序逐章创建，前情必须取自真实正文

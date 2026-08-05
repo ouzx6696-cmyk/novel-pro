@@ -261,8 +261,8 @@ Agent会（顺序链路，逐章推进）：
 
 **好处**：
 - ✅ 每章独立上下文，避免污染
-- ✅ 批量创建仍保持质量
-- ✅ 可以并发执行
+- ✅ 前情直接取自上一章真实正文，承接不断裂
+- ✅ 状态回流后，下一章 Prompt 永远读到最新事实
 
 ### 5. 冷读纪律
 
@@ -293,12 +293,12 @@ Day 1-2：构思与规划
   4. 规划幕地图和详细幕纲
   5. 规划第一幕章纲
   
-Day 3：创建Prompt
-  6. 创建第一幕的所有Prompt
-  7. 检查context-pack是否生成
+Day 3 起：顺序链路写作（逐章循环）
+  6. 逐章创建 Prompt 并写作：第 M 章 Prompt 的前情直接取自第 M-1 章真实草稿，一章验收后才创建下一章
+  7. 本卷首章任务自动生成 context-pack（可检查确认）
   
 Day 4-7：写作模式快速推进
-  8. 用写作模式写完第一幕（8-10章）
+  8. 用写作模式写完第一幕（8-10章，写作+验收逐章循环）
   9. 顶层阅读草稿，确认方向
   
 Day 8-10：编辑模式精修
@@ -323,7 +323,7 @@ Step 2：幕章规划
   6. 逐幕规划章纲
   
 Step 3：Prompt创建
-  7. 逐幕创建Prompt（复用context-pack）
+  7. 逐章创建 Prompt（复用 context-pack，跟随写作顺序）
   
 Step 4：选择模式创作
   8a. 写作模式：快速完成全卷草稿
@@ -372,11 +372,11 @@ Step 5：卷末对齐
 ### Q2: 支持哪些题材？
 
 **A**: 当前支持25个题材，包括：
-- 修仙：xianxia（修仙）、xuanhuan（玄幻）
-- 现代：urban（都市）、romance（言情）
-- 推理：suspense-crime（悬疑推理）
+- 修仙：xianxia（东方仙侠）、xuanhuan（东方玄幻）
+- 现代：urban（都市）、urban-romance（都市甜宠）
+- 推理：suspense-crime（悬疑犯罪）
 - 历史：historical（历史）
-- 其他：scifi（科幻）、fantasy（西幻）等
+- 其他：scifi-apocalypse（科幻末世）、western-fantasy（西方奇幻）等
 
 完整列表见 `knowledge/genre/index.md`
 

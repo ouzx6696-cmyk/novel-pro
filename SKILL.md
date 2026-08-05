@@ -206,8 +206,8 @@ outline.chapters 完成
 
 以下文档位于 `docs/` 目录，供开发与维护时查阅：
 
-- **[`docs/framework-overview.md`](docs/framework-overview.md)** — 项目整体框架说明。涵盖：四层架构模型、数据流（规划链/写作链/阅读链/知识链）、状态机（10 阶段 cursor + 17 种 operation）、版本体系、扩展机制、文件清单。修改系统结构前先读本文档。
-- **[`docs/interface-reference.md`](docs/interface-reference.md)** — 接口功能参考。涵盖：17 张操作派发卡的完整契约、14 个 skill 模块的功能说明、12 个 agent 角色的输入/输出/权限、8 个知识入口的消费者表、5 个关键模板的结构、工具链用法。开发新功能或排查接口问题时查阅。
+- **[`docs/framework-overview.md`](docs/framework-overview.md)** — 项目整体框架说明。涵盖：四层架构模型、数据流（规划链/顺序链路/状态回流链/阅读链/知识链）、状态机（8 阶段 cursor + 18 种 operation）、版本体系、扩展机制、文件清单。修改系统结构前先读本文档。
+- **[`docs/interface-reference.md`](docs/interface-reference.md)** — 接口功能参考。涵盖：18 张操作派发卡的完整契约、15 个 skill 模块的功能说明、13 个 agent 角色的输入/输出/权限、8 个知识入口的消费者表、5 个关键模板的结构、工具链用法。开发新功能或排查接口问题时查阅。
 
 ## 扩展契约
 
@@ -235,6 +235,6 @@ outline.chapters 完成
 
 ### 不变量约束
 所有扩展不得破坏以下三个不变量：
-- **cursor 状态机**：10 阶段结构不变，新 operation 归入已有 cursor 下或声明为旁路
+- **cursor 状态机**：8 阶段结构不变，新 operation 归入已有 cursor 下或声明为旁路
 - **所有权边界**：novel-agent 仍是唯一控制面写入者
 - **冷读纪律**：Reader 和 completion-reviewer 首读仍然不预挂知识

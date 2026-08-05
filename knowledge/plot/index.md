@@ -27,7 +27,7 @@
 | act-planner 划分幕边界与幕间节奏 | `act-decomposition.md`、`continuity.md`、`act-transition.md` |
 | chapter-planner 形成章节功能 | `hooks.md`、`emotional-pull.md`、`continuity.md` |
 | prompt-crafter 转成人物行动 | 按当前章需要的条目，溶解到 Prompt |
-| 多视角叙事设计 | `multi-pov.md`（规划）+ `scene/pov.md`（执行） |
+| 多视角叙事设计 | `multi-pov.md`（规划）+ `knowledge/scene/pov.md`（执行） |
 | 跨卷规划 | `cross-volume.md`、`continuity.md` |
 
 volume-planner 用它设计卷级变化；act-planner 用它划分幕边界与幕间节奏；

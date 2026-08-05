@@ -484,7 +484,7 @@ dispatch.md 中的每张派发卡定义了 operation 的完整契约。九字段
 
 ### status.yaml
 长期状态文件。字段：
-- `cursor.step`（9 个有效值：outline.volume/outline.acts/outline.chapters/draft.write/drafts.ready/volume.complete/book.complete/migration.review）
+- `cursor.step`（8 个有效值：outline.volume/outline.acts/outline.chapters/draft.write/drafts.ready/volume.complete/book.complete/migration.review）
 - `migration` 节点（来源、报告、恢复阶段、文件计数、清理状态）
 
 ### order.yaml

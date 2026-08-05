@@ -64,6 +64,6 @@
 - 纠正：每个视角人物的感知重点不同（武者重触觉、学者重细节、孩子重情绪）
 
 ## 与其他知识的关系
-- `scene/pov.md`：单视角限定的具体写法
+- `knowledge/scene/pov.md`：单视角限定的具体写法
 - `plot/reversals.md`：信息差通过多POV管理
 - `plot/continuity.md`：跨章视角的连续性
