@@ -1,6 +1,6 @@
 # 表达知识索引
 
-本索引由编辑模式的 anti-AI 在 `edit.anti-ai`（全量扫描报告）与 `edit.repair`（编辑候选）两阶段按需加载，扫描同批章节、编辑只处理有证据的问题。写作模式、writer、Prompt 创建、Prompt 修复和 Prompt 审核不加载 anti-AI 工作规则。
+本索引由编辑模式的 anti-AI 在 `edit.anti-ai`（全量扫描报告）与 `edit.repair`（编辑候选）两阶段按需加载，扫描本章正文、编辑只处理有证据的问题。写作模式、writer、Prompt 创建、Prompt 修复和 Prompt 审核不加载 anti-AI 工作规则。
 
 题材文件中的优先删改、优先保留和处理口径，只在确认真实表达问题后使用。它们不是全书扫描清单，也不授权编辑自行扩大范围。
 

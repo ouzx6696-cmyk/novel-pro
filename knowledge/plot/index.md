@@ -26,11 +26,11 @@
 | volume-planner 设计卷级变化 | `conflict.md`、`pacing.md`、`foreshadowing.md` |
 | act-planner 划分幕边界与幕间节奏 | `act-decomposition.md`、`continuity.md`、`act-transition.md` |
 | chapter-planner 形成章节功能 | `hooks.md`、`emotional-pull.md`、`continuity.md` |
-| prompt-crafter 转成人物行动 | 按当前批次需要的条目，溶解到 Prompt |
+| prompt-crafter 转成人物行动 | 按当前章需要的条目，溶解到 Prompt |
 | 多视角叙事设计 | `multi-pov.md`（规划）+ `scene/pov.md`（执行） |
 | 跨卷规划 | `cross-volume.md`、`continuity.md` |
 
 volume-planner 用它设计卷级变化；act-planner 用它划分幕边界与幕间节奏；
 chapter-planner 用它形成整个幕的章节功能和可执行场景；prompt-crafter 只选择与当前
-批次冲突、节奏、钩点或承接直接相关的条目，把章纲进一步转成人物行动。不要把方法
+章冲突、节奏、钩点或承接直接相关的条目，把章纲进一步转成人物行动。不要把方法
 名称写入卷纲、幕纲、章纲或 Prompt，只写人物选择、事件因果和读者期待。

@@ -14,9 +14,17 @@ chapter-planner 一次处理一幕，顺序复读该幕全部章纲。第一章�
 
 ## Prompt
 
-章纲稳定后，prompt-crafter 以一幕为任务创建全部单章 Prompt。长幕按连续叙事阶段分批，每个批次创建多章独立 Prompt。
+顺序链路下 Prompt 由 prompt-crafter **逐章创建**（前情取自上一章真实正文、角色初始状态取自状态文件），不存在批量节点。对齐任务按本章范围形成或修复 Prompt；对齐产生的 Prompt 修复仍需经过默认 `prompt.review` 审计（顺序链路默认步骤），不因对齐而跳过。
 
-对齐任务形成或修复 Prompt，不自动创建 prompt-reviewer。作者明确要求审核提示词时，顶层另行创建 `prompt.review` 任务。
+## 状态文件连续性检查
+
+对齐时检查 `settings/character-setting/*.md` 的 `state_history`、`settings/timeline.md`、`settings/foreshadowing.md` 与已接受正文是否连续：
+
+- `state_history` 缺失已验收章节的状态块（应同步而未同步）→ 漂移，列入重建清单（补 `state.update`）。
+- 状态块的信息持有（知道/不知道/误判）与已接受正文矛盾 → 漂移，回告顶层核对。
+- 时间线/伏笔台账与正文事实不符 → 以正文为准修正或回告。
+
+状态文件是"当前状态"的真相源：它决定下一章 Prompt 的角色初始状态与信息差起点，漂移会直接污染后续创作。
 
 ## 正文之后
 

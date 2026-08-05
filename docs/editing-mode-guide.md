@@ -134,20 +134,20 @@ chapter: vol-1-ch-2
 
 ### 第3步：edit.anti-ai - Anti-AI全量扫描
 
-**做什么**：Anti-AI对同批章节全量扫描表达问题。
+**做什么**：Anti-AI对本章正文全量扫描表达问题（顺序链路逐章闭环）。
 
 **输入**：
-- Reader读过的同批章节正文
+- Reader读过的本章正文
 - `knowledge/anti-ai/index.md`（通用+题材规则）
 
 **不依赖**：不依赖Reader点名，主动全量扫描
 
 **输出**：Anti-AI报告
 ```markdown
-act: vol-1-act-2
+chapter: vol-1-ch-2
 scanned: 全量
 
-### ch-M
+### ch-2
 - 等级: 严重 / 中等 / 轻微
 - 证据: {原句定位} -> {AI味表现}
 - 边界: 局部可编辑 / 越界
@@ -159,7 +159,7 @@ scanned: 全量
 - 标注是否越出局部编辑边界
 - 不依赖Reader的报告
 
-**完成判定**：同批每章均经全量扫描
+**完成判定**：本章经全量扫描
 
 **下一步**：edit.synthesize
 
