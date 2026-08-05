@@ -35,7 +35,7 @@ knowledge:
 
 1. **前置检查**：读 `story.md` 当前卷 `author_confirmed`；缺失或为 `false` 时只返回作者确认需求，不创建 Prompt。
 2. **本卷首任务建包**：按 `skills/context-pack.md` 从两层知识库压缩 `settings/context-pack.md`（底座必选：webnovel 基线 + scene/plot/character 按叙事重心选子文件；类型叠加：genre 画像），返回建包摘要。
-3. **读真实上文**：完整阅读上一章验收稿（`drafts/`）或已提交正文（`texts/`）的结尾，提取前情三件套（上章结尾画面 30-50 字 / 情绪残留一词 / 上章缺口一句）；倒读出场角色档案 `state_history` 与 `timeline.md`/`foreshadowing.md` 最近条目，重建角色当前状态与知识存量。
+3. **读真实上文**：完整阅读上一章验收稿（`drafts/`）或已提交正文（`texts/`）——**同幕内读上一章全文**（建立承接质感），**跨幕首章增读上一幕的幕末正文总结 `summaries/vol-N-act-K-1.md`**（跨幕导航）；提取前情三件套（上章结尾画面 30-50 字 / 情绪残留一词 / 上章缺口一句）；倒读出场角色档案 `state_history` 与 `timeline.md`/`foreshadowing.md` 最近条目，重建角色当前状态与知识存量。
 4. **创建本章 Prompt**：写 `prompts/vol-N-ch-M.md`（六块模板：前情上下文/本章故事/角色初始状态/人物动机与情绪/场景展开/必守事实与边界；frontmatter 记录 `preceding_source`），按 `skills/prompt.md` 的四步转化法（锚定角色→角色认知重建→锚定情绪递进→溶解输出）把章纲与真实上文转成叙述型生成包；每章标注 1 个核心场景 + 至多 1 个低权重转场。
 5. **返回自检结论**：按章附一行式自检表（七核对点含字段完整性，覆盖自检协议九项检查），供顶层逐章核对。
 
@@ -55,7 +55,7 @@ knowledge:
 ## 调用与输入
 
 - 前置：`story.md` 目标卷 `author_confirmed`。
-- 真实上文（必读）：上一章验收稿或已提交正文的结尾。
+- 真实上文（必读）：上一章验收稿或已提交正文（同幕读全文；跨幕首章另读上一幕幕总结 `summaries/`）。
 - 项目事实：`settings/writing-style.md`、`genre-setting.md`、`world-setting.md`、相关人物设定（含 `state_history`）、`writing-preferences.md`、`foreshadowing.md`、`timeline.md`（按章筛选所需）。
 - 规划产物：幕级承接快照（优先）、当前幕纲、本章章纲（含 `info_gap`/`chapter_end_state`/设定变更通知）。
 - 知识：context-pack（首任务为知识库原文，后续读 pack）。

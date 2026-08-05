@@ -141,8 +141,8 @@ dispatch.md 中的每张派发卡定义了 operation 的完整契约。九字段
 - **加载模块**：`skills/state-sync.md`
 - **角色**：continuity-updater ×1（单章）
 - **输入**：本章验收稿/定稿；章纲（chapter_end_state + 设定变更通知块）；幕纲（设定变更通知块）；既有 settings/
-- **允许写入**：`settings/character-setting/*.md`（state_history 状态块）、`timeline.md`（章节锚点条目）、`foreshadowing.md`（台账推进）；移除已消费的通知块
-- **返回**：状态同步摘要（追加清单、消费/保留的通知、与 chapter_end_state 的偏差清单）
+- **允许写入**：`settings/character-setting/*.md`（state_history 状态块）、`timeline.md`（章节锚点条目）、`foreshadowing.md`（台账推进）；移除已消费的通知块；幕末章额外生成/更新幕总结 `summaries/vol-N-act-K.md`
+- **返回**：状态同步摘要（追加清单、消费/保留的通知、与 chapter_end_state 的偏差清单；幕末章另含幕总结路径）
 - **完成**：四项回流按章完成、幂等锚点已检查、通知块处理完毕
 - **下一跳**：下一章 `prompt.create`（order current_chapter 推进）；范围完成后 → `drafts.ready` 或 `volume.complete`
 
@@ -259,9 +259,9 @@ dispatch.md 中的每张派发卡定义了 operation 的完整契约。九字段
 **内容**：
 - 触发：写作模式草稿验收后 / 编辑模式 `edit.commit` 后
 - 输入：已验收正文/定稿 + 章纲（chapter_end_state/设定变更通知）+ 幕纲（设定变更通知）+ 既有 settings/
-- 四项回流：角色 state_history 状态块、timeline 章节锚点条目、foreshadowing 台账推进、设定变更通知消费（移除源块）
-- 幂等与回滚：按章节锚点追加，宁少删
-- 纪律：只写正文已兑现事实、只追加不覆盖、认知层 1-3 变更须有支撑事件
+- 五项回流：角色 state_history 状态块、timeline 章节锚点条目、foreshadowing 台账推进、设定变更通知消费（移除源块）、**幕末章生成幕总结 `summaries/vol-N-act-K.md`（事件链带章节锚点/人物状态/信息差/伏笔/未闭合张力/幕末承接帧）**
+- 幂等与回滚：按章节锚点追加，宁少删；幕总结 based_on 相同且未返修时跳过
+- 纪律：只写正文已兑现事实、只追加不覆盖、认知层 1-3 变更须有支撑事件；幕总结是派生缓存非真相源
 
 ### writer-construction.md
 **定位**：writer base 构造规范。
@@ -378,7 +378,7 @@ dispatch.md 中的每张派发卡定义了 operation 的完整契约。九字段
 - **类别**：Prompt 创建
 - **skill**：`skills/prompt.md`（首任务 + `skills/context-pack.md`）
 - **知识挂载**：webnovel、genre、scene、plot、character（首任务建包时读取，后续读 pack）
-- **输入**：context-pack、幕级承接快照（优先）、幕纲、本章章纲、**上一章真实正文（必读，前情三件套）**、角色档案 state_history、7 个 setting 文件
+- **输入**：context-pack（首任务为知识库原文）、幕级承接快照（优先）、幕纲、本章章纲、**上一章真实正文（必读，同幕读全文 / 跨幕首章另读上一幕幕总结）**、角色档案 state_history、7 个 setting 文件
 - **返回**：Prompt 路径、本章承接摘要、自检结论表（七核对点）、事实缺口或上游冲突；本卷首任务另返建包摘要
 - **写入**：`prompts/vol-N-ch-M.md`（contract-4 六块，frontmatter 记录 preceding_source）；首任务另写 `settings/context-pack.md`
 

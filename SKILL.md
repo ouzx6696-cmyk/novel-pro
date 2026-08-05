@@ -171,6 +171,7 @@ outline.chapters 完成
 - `prompts/vol-N-ch-M.md`：单章 Prompt（顺序链路逐章创建，frontmatter 记录 `preceding_source`）。
 - `drafts/vol-N-ch-M.md`：未经 Reader 文学验收的草稿。
 - `texts/vol-N-ch-M.md`：Reader 接受后的正文。
+- `summaries/vol-N-act-K.md`：幕末正文总结（state.update 在幕末章验收/提交后生成，派生缓存；跨幕 prompt-crafter 读它作导航，事实以 `settings/` 与正文为准）。
 - `settings/character-setting/*`：角色档案，含 `state_history`（状态变更历史，state.update 按章追加维护）。
 
 项目事实接口由规划层形成、正文回流并按章承接：`settings/genre-setting.md`、`world-setting.md`、`character-setting/`（含 `state_history`）、`writing-preferences.md`、`foreshadowing.md`、`timeline.md` 和确认后的 `writing-style.md`。writer 不回读原始文风原型或无关设定。

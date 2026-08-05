@@ -141,17 +141,18 @@ prompt-crafter → prompts/vol-N-ch-M.md（contract-4 六块：前情上下文/�
 
 每一次传递是**信息密度增加而非复制**。Prompt 嵌入全部此刻上下文（真实上文 + 当前状态），变成 writer 可执行的行动过程。
 
-### 状态回流链（正文 → settings → 下一章 Prompt）
+### 状态回流链（正文 → settings/幕总结 → 下一章 Prompt）
 
 ```
 正文（验收稿 drafts/ 或定稿 texts/）
 → continuity-updater（state.update，按章锚点追加，幂等）
 → settings/character-setting/*.md（state_history 状态块）+ timeline.md（章节锚点条目）+ foreshadowing.md（台账推进）
   + 消费章纲/幕纲「设定变更通知」块
-→ 下一章 prompt-crafter 倒读重建「角色初始状态」与信息持有
+→ 幕末章额外生成 summaries/vol-N-act-K.md（幕末正文总结：事件链/人物状态/信息差/伏笔/未闭合张力/幕末承接帧）
+→ 下一章 prompt-crafter：同幕读上一章全文（质感与承接）；跨幕首章读幕总结（导航）+ 上一章结尾帧
 ```
 
-这是"当前状态"系统：每章验收后状态文件即反映最新事实，下一章 Prompt 永远读到最新状态——前后文矛盾的机制性解法。
+这是"当前状态"系统：每章验收后状态文件即反映最新事实，幕末章后幕总结压缩全幕发生的事，下一章 Prompt 永远读到最新状态——前后文矛盾的机制性解法。幕总结是**派生缓存非真相源**：每条带章节锚点，事实以正文与 `settings/` 为准。
 
 ### 阅读链（编辑模式 reader → anti-ai → synthesize → repair → commit）
 

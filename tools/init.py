@@ -44,6 +44,7 @@ REQUIRED_SOURCE_FILES = (
     Path("templates/acts/volume-N-acts.md"),
     Path("templates/chapters/vol-N-ch-M.md"),
     Path("templates/characters/character-profile.md"),
+    Path("templates/summaries/vol-N-act-K.md"),
     Path("templates/TASKS.md"),
     Path("knowledge/index.md"),
     Path("knowledge/webnovel/index.md"),
@@ -152,7 +153,7 @@ def copy_if_missing(source, target):
 def create_skeleton(project_path):
     for rel in (
         "settings/character-setting", "volumes", "acts", "chapters", "prompts",
-        "drafts", "texts", "tools", ".agent/tasks", ".claude/agents",
+        "drafts", "texts", "summaries", "tools", ".agent/tasks", ".claude/agents",
         ".claude/skill-resources/skills", ".claude/skill-resources/knowledge",
         ".claude/skill-resources/templates",
     ):

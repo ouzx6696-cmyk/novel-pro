@@ -27,6 +27,7 @@ SUBDIR_TEMPLATE_FILES = {
     "acts": ["vol-N-act-K.md", "volume-N-acts.md"],
     "chapters": ["vol-N-ch-M.md"],
     "characters": ["character-profile.md"],
+    "summaries": ["vol-N-act-K.md"],
     ".": ["TASKS.md"],
 }
 

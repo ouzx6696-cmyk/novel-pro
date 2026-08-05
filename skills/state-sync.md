@@ -9,6 +9,7 @@
 - **触发时机**（双模式接入）：
   - **写作模式**：本章草稿被顶层**接受**后执行（输入为验收草稿 `drafts/vol-N-ch-M.md`）。
   - **编辑模式**：本章 `edit.commit` 写入 `texts/vol-N-ch-M.md` 后执行（输入为定稿正文）。
+- **幕末附加动作**：当本章是幕末章时，追加生成/更新幕总结 `summaries/vol-N-act-K.md`（见下方第 5 项）。
 - **输出**：追加式更新；不修改已接受正文、不修改 Prompt、不修改 `.agent` 控制面文件。
 
 ## 输入
@@ -18,7 +19,7 @@
 - 所在幕纲（`acts/vol-N-act-K.md`）：「设定变更通知」块待消费。
 - 既有 `settings/` 文件：`character-setting/`、`timeline.md`、`foreshadowing.md`。
 
-## 输出（四项回流）
+## 输出（五项回流）
 
 ### 1. 角色状态变更块（character-setting/{id}.md → state_history 节）
 
@@ -48,6 +49,15 @@
 - 通知目标为 `timeline.md` / `foreshadowing.md` 时：并入第 2、3 项回流。
 - 通知目标为 `world-setting.md` 等其他设定：正文已兑现 → 在对应文件追加/标注变更（标注 `[updated: vol-N-ch-M]`），保留原文痕迹。
 - **消费后移除源文件中的通知块**（防止重复消费）；正文未兑现的通知**不移除**，回告顶层缺口。
+
+### 5. 幕末正文总结（幕末章附加动作）
+
+当本章是本幕的**最后一章**（order 目标范围终点或幕纲 `chapter_roles` 末章）时，`state.update` 额外生成/更新幕末正文总结 `summaries/vol-N-act-K.md`（模板见 `templates/summaries/vol-N-act-K.md`）：
+
+- **内容**：幕内事件链（每章一条，带章节锚点）、人物状态与关系变化（与 state_history 核对）、信息差状态（幕末谁知道什么）、伏笔状态（与 foreshadowing 核对）、未闭合张力（跨幕驱动）、幕末承接帧（幕末最后一章真实结尾画面/情绪残留/缺口）。
+- **来源**：本幕全部已验收正文（写作模式 `drafts/` 或编辑模式 `texts/`），只压缩实际发生的事实；与 `settings/` 状态文件交叉核对，矛盾以正文为准并回告顶层。
+- **幂等**：`based_on` 相同的幕总结已存在且本章未返修重写时跳过；幕内任一章节被返修重写后，由对应 `state.update` 更新幕总结。
+- **纪律**：幕总结是**派生缓存，不是真相源**——每条带章节锚点；事实判定始终以正文与 `settings/` 状态文件为准；prompt-crafter 跨幕读取它作导航，不把它当第二套状态机。
 
 ## 幂等与回滚
 

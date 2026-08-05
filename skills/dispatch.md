@@ -114,7 +114,7 @@
 - 触发：顺序链路中，本章章纲已形成、上一章已验收/提交且 `state.update` 已完成；order 的 `current_chapter` 指向本章
 - 加载模块：`skills/prompt.md`；本卷首个任务（pack 尚未存在时）追加 `skills/context-pack.md`
 - 创建角色：prompt-crafter ×1（范围 = 单章）
-- 角色输入：context-pack（首任务为知识库原文）、幕级承接快照 `chapters/vol-N-act-K-handoff.md`（优先；缺失或与幕纲/章纲不一致时以幕纲+章纲为准）、当前幕纲、本章章纲（含 `info_gap`/`chapter_end_state`）、**上一章真实正文（验收稿 `drafts/` 或已提交正文 `texts/`，必读）**、出场角色档案（含 `state_history` 倒读）、`writing-style.md`、`genre-setting.md`、`world-setting.md`、`writing-preferences.md`、`foreshadowing.md`、`timeline.md`（按章筛选所需）
+- 角色输入：context-pack（首任务为知识库原文）、幕级承接快照 `chapters/vol-N-act-K-handoff.md`（优先；缺失或与幕纲/章纲不一致时以幕纲+章纲为准）、当前幕纲、本章章纲（含 `info_gap`/`chapter_end_state`）、**上一章真实正文（验收稿 `drafts/` 或已提交正文 `texts/`，必读；同幕读全文，跨幕首章另读上一幕幕总结 `summaries/`）**、出场角色档案（含 `state_history` 倒读）、`writing-style.md`、`genre-setting.md`、`world-setting.md`、`writing-preferences.md`、`foreshadowing.md`、`timeline.md`（按章筛选所需）
 - 允许写入：`prompts/vol-N-ch-M.md`（`prompt_contract: 4`，frontmatter 记录 `preceding_source`）；首任务另写 `settings/context-pack.md`
 - 返回顶层：Prompt 路径、本章承接摘要（前情三件套来源）、自检结论表、事实缺口或上游冲突；本卷首任务另返建包摘要
 - 完成判定：`prompts/vol-N-ch-M.md` 落盘且顶层逐一读过（存在 ≠ 通过），自检结论表无未解释缺口；已读上一章真实正文与状态文件核对一致
@@ -214,7 +214,7 @@
 - 加载模块：`skills/state-sync.md`
 - 创建角色：continuity-updater ×1（范围 = 单章）
 - 角色输入：本章验收稿或已提交正文；本章章纲（`chapter_end_state` 与「设定变更通知」块）；所在幕纲（「设定变更通知」块）；既有 `settings/` 文件
-- 允许写入：向 `settings/character-setting/{id}.md` 的 `state_history` 节追加状态变更块、`settings/timeline.md` 追加章节锚点条目、`settings/foreshadowing.md` 推进台账；移除章纲/幕纲中已消费的「设定变更通知」块
+- 允许写入：向 `settings/character-setting/{id}.md` 的 `state_history` 节追加状态变更块、`settings/timeline.md` 追加章节锚点条目、`settings/foreshadowing.md` 推进台账；移除章纲/幕纲中已消费的「设定变更通知」块；**幕末章额外生成/更新幕总结 `summaries/vol-N-act-K.md`（幂等，见 `skills/state-sync.md` 第 5 项）**
 - 返回顶层：状态同步摘要（追加清单、消费/保留的通知、与 `chapter_end_state` 的偏差清单）
 - 完成判定：四项回流按章完成、幂等锚点已检查、通知块处理完毕
 - 下一跳：目标范围未完成 → 下一章 `prompt.create`（order `current_chapter` 推进）；已完成 → `drafts.ready`（写作模式）或 `volume.complete`（编辑模式）

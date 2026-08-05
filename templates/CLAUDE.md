@@ -126,8 +126,9 @@ python tools/migrate.py <旧项目路径> <新项目路径>
 - 向 `timeline.md` 追加章节锚点时间线条目
 - 推进 `foreshadowing.md` 伏笔台账
 - 消费章纲/幕纲中的「设定变更通知」块
+- **幕末章额外生成幕末正文总结 `summaries/vol-N-act-K.md`**（事件链带章节锚点/人物状态/信息差/伏笔/未闭合张力/幕末承接帧）
 
-状态回流保证下一章 Prompt 读到"当前状态"，是前后文不矛盾的机制保障。幂等：按章节锚点追加，重复执行不产生重复内容。
+状态回流保证下一章 Prompt 读到"当前状态"：同幕内 prompt-crafter 读上一章全文建立承接质感，跨幕首章读幕总结作跨幕导航（总结是派生缓存，事实以 settings/ 与正文为准）。幂等：按章节锚点追加，重复执行不产生重复内容。
 
 ## Writer Base 构造
 
@@ -249,7 +250,8 @@ Prompt「本章故事」叙述示范 + 各场「本场声线」落点
 正文（验收稿 drafts/ 或定稿 texts/）
   ↓ state.update（continuity-updater，按章追加）
 角色档案 state_history + timeline.md + foreshadowing.md（"当前状态"）
-  ↓ prompt-crafter 倒读重建
+  + 幕末章生成 summaries/vol-N-act-K.md（幕末正文总结）
+  ↓ prompt-crafter：同幕读上一章全文（质感）；跨幕首章读幕总结（导航）
 Prompt「前情上下文」+「角色初始状态」
   ↓ writer 执行
 下一章正文
@@ -281,6 +283,7 @@ Prompt「前情上下文」+「角色初始状态」
 - `drafts/`：writer 写入
 - `texts/`：novel-agent 通过 `edit.commit` 写入（仅此路径）
 - `settings/character-setting/`（state_history 节）、`timeline.md`、`foreshadowing.md`：continuity-updater 按章追加
+- `summaries/`：continuity-updater 在幕末章生成幕末正文总结
 
 ## 质量判断原则
 

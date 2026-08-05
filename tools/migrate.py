@@ -29,7 +29,7 @@ REPORT_DIR = Path(".migration")
 REPORT_JSON = REPORT_DIR / "report.json"
 REPORT_MD = REPORT_DIR / "report.md"
 
-CONTENT_ROOTS = ("settings", "volumes", "acts", "chapters", "prompts", "drafts", "texts")
+CONTENT_ROOTS = ("settings", "volumes", "acts", "chapters", "prompts", "drafts", "texts", "summaries")
 REQUIRED_CONTENT_FILES = (
     "story.md",
     "settings/genre-setting.md",
