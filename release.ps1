@@ -28,7 +28,7 @@ if ($LASTEXITCODE -ne 0) {
 
 # 2. Read version from skill.json
 $skillJsonPath = Join-Path $SkillDir "skill.json"
-$Version = "0.2.3-pro"
+$Version = "0.3.0-pro"
 if (Test-Path $skillJsonPath) {
     try {
         $meta = Get-Content $skillJsonPath -Raw -Encoding UTF8 | ConvertFrom-Json
