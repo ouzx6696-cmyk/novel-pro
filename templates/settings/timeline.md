@@ -127,7 +127,7 @@ optional_fields: [who_knows, dependencies, evidence]
 
 ### 何时填写
 - 规划阶段：planner 在创建幕纲/章纲时，将关键时间锚点写入
-- 创作阶段：正文验收/提交后，由 `state.update`（continuity-updater）从**真实正文**提取实际发生的时间事实并**追加**条目；顶层或作者可在其核对后补充/修正。写作模式在草稿验收后追加，编辑模式在 `edit.commit` 后追加
+- 创作阶段：草稿完成后先生成 task-local chapter-delta；最终 `texts/` 提交后，由 `state.update phase: commit`（continuity-updater）从**最终正文**提取实际发生的时间事实并**追加**条目；顶层或作者可在其核对后补充/修正
 - 返修阶段：如果时间线冲突，更新时间线后重新规划
 
 ### 追加规则（state.update）

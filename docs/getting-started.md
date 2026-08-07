@@ -149,13 +149,14 @@ Agent会：
 我：开始写第1章（写作模式）
 
 Agent会（顺序链路，逐章推进）：
-1. 调用prompt-crafter创建第1章Prompt
-2. 本卷首任务从知识库压缩打包context-pack
-3. 从上一章真实正文提取前情三件套 + 状态文件倒读角色初始状态
-4. 调用prompt-reviewer默认审计（9维度）
-5. 调用writer写第1章草稿
-6. 顶层阅读判定，验收后 state.update 回流状态
-7. 再创建第2章Prompt（前情直接取自第1章真实草稿）
+1. 顶层先建本幕幕级复用资料包 act-pack（稳定资料压缩，仅幕首章前一次）
+2. 调用prompt-crafter创建第1章Prompt（读 act-pack + 本章动态资料）
+3. 本卷首任务从知识库压缩打包context-pack
+4. 从上一章真实正文提取前情三件套 + 状态文件倒读角色初始状态
+5. 顶层轻量审查（lint + 阅读；无明确问题直接进写作，有明确问题才调prompt-reviewer 9维度细节审查）
+6. 调用writer写第1章草稿
+7. 顶层阅读判定，验收后 state.update 回流状态
+8. 再创建第2章Prompt（前情直接取自第1章真实草稿）
 ```
 
 **Prompt包含六块**：

@@ -167,6 +167,32 @@ def rewrite_runtime_paths(content):
         ".claude/skill-resources/templates/TASKS.md",
         content,
     )
+    content = re.sub(
+        r"(?<![A-Za-z0-9_./-])templates/acts/",
+        ".claude/skill-resources/templates/acts/",
+        content,
+    )
+    content = re.sub(
+        r"(?<![A-Za-z0-9_./-])templates/chapters/",
+        ".claude/skill-resources/templates/chapters/",
+        content,
+    )
+    content = re.sub(
+        r"(?<![A-Za-z0-9_./-])templates/summaries/",
+        ".claude/skill-resources/templates/summaries/",
+        content,
+    )
+    content = re.sub(
+        r"(?<![A-Za-z0-9_./-])templates/characters/",
+        ".claude/skill-resources/templates/characters/",
+        content,
+    )
+    # settings/ 模板不部署到 .claude（init 直接生成项目根 settings/），部署态引用指向项目根实际设定文件
+    content = re.sub(
+        r"(?<![A-Za-z0-9_./-])templates/settings/",
+        "settings/",
+        content,
+    )
     return content
 
 

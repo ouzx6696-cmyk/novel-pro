@@ -16,7 +16,8 @@ dispatch.md 中的每张派发卡定义了 operation 的完整契约。九字段
 - **允许写入**：`volumes/volume-N.md`（按 `templates/volumes/volume-N.md` 字段 schema，`volume_contract: 1`）；分配的 `settings/` 与人物设定
 - **返回**：卷纲（含主导驱动力/冲突阶梯/信息差弧线等驱动字段）、事实缺口、作者确认项
 - **完成**：卷纲 contract 字段完整、`writing-style.md` 已含基准样章（缺样章不进下一阶段）、设定和文风交作者确认
-- **下一跳**：`outline.acts`
+- **下一跳**：`outline.act-map`
+- **恢复入口**：重读现有卷纲与设定，只补缺失或冲突项
 
 ### outline.act-map
 - **触发**：卷纲/设定/文风确认
@@ -27,16 +28,18 @@ dispatch.md 中的每张派发卡定义了 operation 的完整契约。九字段
 - **返回**：全卷阶段地图和幕边界
 - **完成**：幕地图覆盖整卷，与卷纲无冲突
 - **下一跳**：`outline.act` 或 `outline.chapters`
+- **恢复入口**：以已存在幕地图为准继续未完成范围
 
 ### outline.act
-- **触发**：幕地图完成，按幕分解
+- **触发**：幕地图完成，按幕分解；或长幕需独立详细纲
 - **加载模块**：`skills/act-planning.md`
 - **角色**：act-planner ×1
 - **输入**：卷纲、幕地图、项目事实、相邻幕接口、正文入口
 - **允许写入**：`acts/vol-N-act-K.md`
-- **返回**：写入路径、幕内事实概要、相邻幕接口、无法成立的证据
+- **返回**：写入路径、幕内事实概要、相邻幕接口、无法成立的证据；详细幕纲的 start_state/dramatic_task/continuity contract/end_state 等结构化字段写入文件，由顶层从文件读取
 - **完成**：目标范围内幕任务与接口共同成立
 - **下一跳**：`outline.chapters`
+- **恢复入口**：只重做缺失或被证据点名冲突的幕纲
 
 ### outline.chapters
 - **触发**：当前幕纲成立
@@ -47,26 +50,29 @@ dispatch.md 中的每张派发卡定义了 operation 的完整契约。九字段
 - **返回**：章纲路径、承接摘要、需由 Prompt 携带的关键事实、规划冲突
 - **完成**：目标范围内章纲全部形成
 - **下一跳**：顺序链路（`draft.write` 阶段，从范围首章 `prompt.create` 开始）
+- **恢复入口**：从最早缺失章纲继续，并复读幕内接口
 
 ### prompt.create
-- **触发**：顺序链路中，本章章纲已形成、上一章已验收/提交且 `state.update` 已完成；order `current_chapter` 指向本章
+- **触发**：顺序链路中，本章章纲已形成、上一章真实正文可用且必要的 delta 已捕获或正式状态已完成；order `current_chapter` 指向本章；本幕 act-pack 已由顶层建立
 - **加载模块**：`skills/prompt.md`；首任务追加 `skills/context-pack.md`
 - **角色**：prompt-crafter ×1（单章）
-- **输入**：context-pack（首任务为知识库原文）、幕级承接快照 `chapters/vol-N-act-K-handoff.md`（优先；缺失或不一致时以幕纲+章纲为准）、幕纲、本章章纲（含 info_gap/chapter_end_state）、**上一章真实正文（验收稿 drafts/ 或已提交正文 texts/，必读）**、出场角色档案 state_history、`writing-style.md`、`genre-setting.md`、`world-setting.md`、`writing-preferences.md`、`foreshadowing.md`、`timeline.md`
+- **输入**：**幕级复用资料包 `.agent/cache/vol-N-act-K-act-pack.md`（先核 source hash；本幕稳定资料压缩：context-pack 摘要、writing-style 提取卡、题材/作者边界、幕纲与 handoff 稳定事实、出场角色稳定事实、台账结构）**、本章章纲（含 info_gap/chapter_end_state）、**上一章真实正文（验收稿 drafts/ 或已提交正文 texts/，必读）**、可选上一章 chapter-delta、出场角色档案 state_history 最新块；包缺失或 hash 失效时回退完整读取（context-pack、幕纲、handoff、`settings/` 六件套按章筛读）
 - **允许写入**：`prompts/vol-N-ch-M.md`（`prompt_contract: 4`，六块，frontmatter 记录 preceding_source）；首任务另写 `settings/context-pack.md`
-- **返回**：Prompt 路径、本章承接摘要（前情三件套来源）、自检结论表（七核对点含字段完整性）、事实缺口或上游冲突；本卷首任务另返建包摘要
-- **完成**：`prompts/vol-N-ch-M.md` 落盘且顶层逐一读过（存在 ≠ 通过），已读上一章真实正文与状态文件核对一致，自检结论表无未解释缺口
-- **下一跳**：`prompt.review`
+- **返回**：Prompt 路径、lint 状态、本章承接摘要（前情三件套来源）、语义自检结论、事实缺口或上游冲突；本卷首任务另返建包摘要；不回显 Prompt 正文
+- **完成**：`prompts/vol-N-ch-M.md` 落盘且顶层逐一读过（存在 ≠ 通过），lint 无错误、已读上一章真实正文与状态/delta 核对一致，语义自检无未解释缺口
+- **下一跳**：顶层轻量审查（lint + Prompt 阅读 + 自检表）——无明确问题 → `write.draft` / `edit.write`；发现明确问题或作者要求 → `prompt.review`
+- **恢复入口**：只重做缺失或被正文证据点名的 Prompt；act-pack 未漂移不重建，pack 未漂移不重建
 
-### prompt.review（顺序链路默认步骤）
-- **触发**：本章 Prompt 落盘后自动执行；作者明确放行时可跳过（顶层在 order 记录）
-- **加载模块**：`skills/prompt.md`「默认 Prompt 审计」
+### prompt.review（按需细节审查）
+- **触发**：顶层轻量审查发现明确问题（lint 错误超 micro-fix 边界、语义自检缺口、前情/信息差/可执行性存疑）、作者明确要求强制细节审查，或幕内首章/返修重写章被顶层点名；通过轻量审查的章不派发
+- **加载模块**：`skills/prompt.md`「两级审查 · 细节审查」
 - **角色**：prompt-reviewer ×1（单章）
-- **输入**：目标 Prompt + `preceding_source` 对应上一章真实正文 + 幕纲 + 章纲 + 角色档案 state_history
+- **输入**：`prompt_lint.py` 结果 + 目标 Prompt + 顶层指出的疑点 + `preceding_source` 对应上一章真实正文 + 幕纲 + 章纲 + 角色档案 state_history
 - **允许写入**：不写任何产物（报告写入当前 task）
-- **返回**：PASS / FIX / STOP 报告（9 维度逐项结论）
+- **返回**：PASS / FIX / STOP 结构化短报告（真实前情、层间一致、信息差、核心场景可执行性；F/H/I 默认警告）
 - **完成**：报告给出明确结论
-- **下一跳**：PASS → `write.draft` 或 `edit.write`；FIX → 返回 `prompt.create`；STOP → 交规划层
+- **下一跳**：PASS → `write.draft` 或 `edit.write`；机械问题且不超过 3 处 → micro-fix、保存 diff、重跑 lint；FIX → 返回 `prompt.create`；STOP → 交规划层
+- **恢复入口**：保留报告，对未通过的 Prompt 重新审计
 
 ### write.draft
 - **触发**：本章 Prompt 审计通过且作者选择写作模式
@@ -74,17 +80,19 @@ dispatch.md 中的每张派发卡定义了 operation 的完整契约。九字段
 - **角色**：writer ×1（单章）
 - **输入**：单章 writer base + 目标 Prompt
 - **允许写入**：`drafts/vol-N-ch-M.md`；重派写 task candidate
-- **返回**：完整纯正文或失败原因
-- **完成**：当前窗口完成
-- **下一跳**：顶层阅读三向判定——接受 → `state.update`；重派 → 本卡；回退 → `prompt.create`
+- **返回**：固定短状态或失败原因；正文只写目标文件，不在消息中回显
+- **完成**：目标文件完整，或按产物优先恢复完成至多一次自动重试
+- **下一跳**：顶层阅读三向判定——接受 → `state.update phase: delta`；重派 → 本卡；回退 → `prompt.create`
+- **恢复入口**：空返回/取消/异常先检查目标文件；完整则直接进入顶层阅读，缺失或截断才用相同 Prompt/profile 自动重试一次；第二次失败保留现场并停止盲目重派
 
 ### edit.write
 - **触发**：本章 Prompt 审计通过且作者选择编辑模式
 - **加载模块**：`skills/writing.md` + `skills/writer-construction.md`
 - **角色**：writer ×1
 - **输入/输出**：同 write.draft
-- **完成**：当前窗口完成
-- **下一跳**：`edit.review`
+- **完成**：目标文件完整，或按产物优先恢复转入一次自动重试
+- **下一跳**：幕内每章草稿完成后 `state.update`（`phase: delta` 轻量工作态增量，不写 settings）；幕内全部草稿形成后 `edit.review`
+- **恢复入口**：空返回/取消/异常先检查目标文件；完整则继续，缺失或截断才用相同 Prompt/profile 自动重试一次；第二次失败保留现场
 
 ### edit.review
 - **触发**：本幕草稿全部形成（幕末批量审读）
@@ -95,6 +103,7 @@ dispatch.md 中的每张派发卡定义了 operation 的完整契约。九字段
 - **返回**：按幕(目)组织的冷读报告——幕级 verdict、已成立处、正文证据、根因、最小处理范围、保留项、建议处理角色、接受候选、复读范围
 - **完成**：受影响范围全部顺序复读，无未解决问题或已分流
 - **下一跳**：`edit.anti-ai`
+- **恢复入口**：按受影响范围从头顺序复读
 
 ### edit.anti-ai
 - **触发**：`edit.review` 完成（冷读报告已返回）
@@ -105,6 +114,7 @@ dispatch.md 中的每张派发卡定义了 operation 的完整契约。九字段
 - **返回**：按幕(目)的 Anti-AI 报告——每章列出 AI 味/模板化/解释腔/机械重复/不自然对白等证据、原句定位、严重倾向（严重/中等/轻微）、是否越界
 - **完成**：同幕每章均经全量扫描并列于报告
 - **下一跳**：`edit.synthesize`
+- **恢复入口**：只重扫缺失或被证据点名的章节
 
 ### edit.synthesize
 - **触发**：`edit.anti-ai` 完成（两份报告齐备）
@@ -115,6 +125,7 @@ dispatch.md 中的每张派发卡定义了 operation 的完整契约。九字段
 - **返回**：整体返修意见——标注来源（冷读/Anti-AI）、严重等级（严重/中等/轻微）、修哪章怎么修、跨章关联与优先级（含 REGENERATE 是否触发后继章前情刷新）、分流建议
 - **完成**：所有问题均被分级、归属并给出可执行返修意图
 - **下一跳**：`edit.repair` 或 `edit.commit`（无返修项时直接提交）
+- **恢复入口**：保留两份报告与返修意见，只重做缺失章节的裁决
 
 ### edit.repair
 - **触发**：`edit.synthesize` 完成（整体返修意见已返回，且存在需返修项）
@@ -124,7 +135,8 @@ dispatch.md 中的每张派发卡定义了 operation 的完整契约。九字段
 - **允许写入**：按分流写 draft candidate / 修复 Prompt / 重建规划 / 表达候选
 - **返回**：各候选完成状态与最小返修范围
 - **完成**：每个候选完成并进入复读
-- **下一跳**：Reader 重新顺序阅读受影响范围
+- **下一跳**：Reader 重新顺序阅读受影响范围（复读通过后 `edit.commit`）
+- **恢复入口**：保留原文与候选，按返修意见重新交对应角色
 
 ### edit.commit
 - **触发**：本幕复读后无未解决问题
@@ -134,17 +146,19 @@ dispatch.md 中的每张派发卡定义了 operation 的完整契约。九字段
 - **允许写入**：`texts/`（逐章）、控制面文件、run-log、task 收尾
 - **返回**：提交结果和下一长期阶段
 - **完成**：预检通过
-- **下一跳**：`state.update`（逐章，同锚点覆盖刷新；幕末章含幕总结）；目标范围全部提交后 → `volume.complete` 或 `book.complete`
+- **下一跳**：`state.update phase: commit`（逐章，同锚点覆盖刷新；幕末章含幕总结）；目标范围全部提交后 → `volume.complete` 或 `book.complete`
+- **恢复入口**：预检失败不写任何目标，保留现场
 
 ### state.update（顺序链路默认步骤）
-- **触发**：本章正文被接受（写作模式草稿验收）或提交（编辑模式 `edit.commit` 完成）
+- **触发**：本章草稿完成时执行 `phase: delta`；编辑模式 `edit.commit` 完成后执行 `phase: commit`
 - **加载模块**：`skills/state-sync.md`
 - **角色**：continuity-updater ×1（单章）
-- **输入**：本章验收稿/定稿；章纲（chapter_end_state + 设定变更通知块）；幕纲（设定变更通知块）；既有 settings/
-- **允许写入**：`settings/character-setting/*.md`（state_history 状态块）、`timeline.md`（章节锚点条目）、`foreshadowing.md`（台账推进）；移除已消费的通知块；幕末章额外生成/更新幕总结 `summaries/vol-N-act-K.md`
-- **返回**：状态同步摘要（追加清单、消费/保留的通知、与 chapter_end_state 的偏差清单；幕末章另含幕总结路径）
-- **完成**：四项回流按章完成、幂等锚点已检查、通知块处理完毕
-- **下一跳**：下一章 `prompt.create`（order current_chapter 推进）；范围完成后 → `drafts.ready` 或 `volume.complete`
+- **输入**：phase、草稿或最终 `texts/`；章纲（chapter_end_state + 设定变更通知块）；幕纲（设定变更通知块）；既有 settings/
+- **允许写入**：delta 阶段只返回 `chapter-delta`，由顶层写当前 task；commit 阶段才写 `settings/character-setting/*.md`、`timeline.md`、`foreshadowing.md`，移除已消费通知并在幕末生成/更新幕总结
+- **返回**：delta 阶段返回 source hash、角色/信息/时间线/伏笔/通知/偏差；commit 阶段返回追加清单、消费/保留通知和偏差清单
+- **完成**：delta 已捕获，或 commit 已按最终 `texts/` 幂等回流并标记 committed
+- **下一跳**：delta 完成后 → 下一章 `prompt.create`；commit 完成后 → 下一章/下一幕或 `drafts.ready` / `volume.complete`
+- **恢复入口**：按 source hash 检查；delta 缺失/失效则重提取，commit 同 hash 已完成则跳过
 
 ### completion.inspect（旁路）
 - **触发**：作者要求显式全书冷读
@@ -155,6 +169,7 @@ dispatch.md 中的每张派发卡定义了 operation 的完整契约。九字段
 - **返回**：完本报告、分流和最小返修范围
 - **完成**：按幕冷读全书并追查根因
 - **下一跳**：`completion.revise` 或完成
+- **恢复入口**：从最早受影响幕重新顺序阅读
 
 ### completion.revise（旁路）
 - **触发**：`completion.inspect` 报告点名最小范围
@@ -165,6 +180,7 @@ dispatch.md 中的每张派发卡定义了 operation 的完整契约。九字段
 - **返回**：EDIT 候选或 REGENERATE 建议
 - **完成**：候选经受影响范围和全书承接复读
 - **下一跳**：completion-reviewer 复读
+- **恢复入口**：不符合边界时放弃候选，返回上游
 
 ### alignment（旁路）
 - **触发**：作者明确要求整卷产物对齐
@@ -175,6 +191,7 @@ dispatch.md 中的每张派发卡定义了 operation 的完整契约。九字段
 - **返回**：对齐后的产物差异
 - **完成**：尚未执行产物与已接受正文一致
 - **下一跳**：返回顶层，不改变主线
+- **恢复入口**：保留已确认正文，不创建空返修链
 
 ### migration.review（临时占用 cursor）
 - **触发**：`cursor.step: migration.review`
@@ -185,6 +202,7 @@ dispatch.md 中的每张派发卡定义了 operation 的完整契约。九字段
 - **返回**：迁移确认结论
 - **完成**：作者完成 finalize
 - **下一跳**：恢复 `migration.resume_step`
+- **恢复入口**：保留报告与现场，不推进创作
 
 ---
 
@@ -195,7 +213,7 @@ dispatch.md 中的每张派发卡定义了 operation 的完整契约。九字段
 **消费者**：novel-agent（启动时全量加载）。
 **关键内容**：
 - 版本门禁（novel-pro-0.3）
-- 长期 cursor 表（9 阶段，含顺序链路说明）
+- 长期 cursor 表（8 阶段，含顺序链路说明）
 - 临时 order 表（18 种操作，含 current_chapter 逐章推进）
 - 所有权总则（含 continuity-updater 只追加 settings 状态历史区）
 - 18 张操作派发卡（含 state.update）
@@ -226,40 +244,42 @@ dispatch.md 中的每张派发卡定义了 operation 的完整契约。九字段
 - 引用 `knowledge/plot/act-decomposition.md` 作为拆幕方法论
 
 ### prompt.md
-**定位**：单章 Prompt 创建与默认审计规则。
+**定位**：单章 Prompt 创建与两级审查规则。
 **操作**：`prompt.create`、`prompt.review`。
 **内容**：
 - 作者确认前置条件（`author_confirmed` 检查）
 - 任务范围：**单章**，跟随正文顺序逐章创建（顺序链路）
-- 创作上下文：上一章真实正文入口（必读，提取前情三件套：上章结尾画面/情绪残留/缺口）；角色档案 state_history 倒读（角色当前状态）；context-pack；幕级承接快照
+- 创作上下文：**幕级复用资料包 act-pack**（本幕稳定资料，先核 hash）+ 本章动态资料（上一章真实正文入口，必读，提取前情三件套：上章结尾画面/情绪残留/缺口；角色档案 state_history 最新块）；包失效时回退完整读取
 - 建包返回摘要：本卷首任务返回题材执行要点/边界/来源/一致性声明
-- 单章 Prompt 模板（**六块**，`prompt_contract: 4`）：前情上下文、本章故事（含承接收束）、角色初始状态、人物动机与情绪、场景展开（场景叙述/行动脉络/本场怎么写/本场声线）、必守事实与边界（含信息差变化）；frontmatter 记录 preceding_source；输入源映射表（各元素←主要来源/辅助来源）
-- 四步转化法：锚定角色 → **角色认知重建（锚定信息差）** → 锚定情绪递进 → 溶解输出；与自检九项衔接
+- 单章 Prompt 模板默认是 **Contract 4 六块**：前情上下文、本章故事（含承接收束）、角色初始状态、人物动机与情绪、场景展开（场景叙述/行动脉络/本场怎么写/本场声线）、必守事实与边界（含信息差变化）；frontmatter 记录 preceding_source。Contract 5 五块仅作开发版同幕 A/B 实验，必须经质量指标对照后才可切换默认
+- 四步转化法：锚定角色 → **角色认知重建（锚定信息差）** → 锚定情绪递进 → 溶解输出；结构项由 `prompt_lint.py` 检查，语义项由顶层轻量审查或 reviewer 核对
 - 场景权重标注：每章 1 核心场景 + 至多 1 低权重转场（≤100 字）
 - 案例骨架：六块结构示范
-- 自检结论：返回时按章附一行式自检表（七核对点含字段完整性，覆盖九项检查）
+- 自检结论：返回时按章附 lint 状态和语义自检短表（承接、状态/动机、场景行动链、信息差、声线）
 - 顺序链路与承接：冲突回顶层；完成语义为单章完成（无 prompts.ready 批量节点）
-- **默认 Prompt 审计**：prompt.review 逐章默认执行（9 维度 + PASS/FIX/STOP 判定）
+- **两级审查**：prompt_lint.py 预检后顶层轻量审查（无明确问题直接进写作）；发现明确问题或作者要求时派发 prompt.review 细节审查（PASS/FIX/STOP）；F/H/I 默认警告
 - 引用 `knowledge/scene/self-contained-prompt.md` 作为自包含方法论
 
 ### context-pack.md
-**定位**：知识预制包规则。
-**消费者**：本卷首个 `prompt.create` 任务的 prompt-crafter。
+**定位**：预制包规则（卷级知识包 context-pack + 幕级复用资料包 act-pack）。
+**消费者**：本卷首个 `prompt.create` 任务的 prompt-crafter（context-pack）；顶层（act-pack 建立）+ 幕内每章 prompt-crafter（act-pack 使用）。
 **内容**：
-- 形成者：本卷第一个 prompt.create 任务的 prompt-crafter
+- 形成者：本卷第一个 prompt.create 任务的 prompt-crafter（context-pack）；顶层在幕首章前（act-pack）
 - 消费者：本卷后续所有 prompt.create 任务
 - 建包：通用写作底座 + 类型风格知识，压缩为 8 节
 - 建包子文件选择清单：按卷叙事重心映射；**角色类跨重心默认叠加 arc-continuity（状态变更记录方法）**
 - 用包：后续任务读 1 个文件替代 8-18 个文件；承接入口特指上一章真实正文
+- **幕级复用资料包（act-pack）**：顶层幕首章前建 `.agent/cache/vol-N-act-K-act-pack.md`（manifest + 语义摘要）；幕内每章只读 act-pack + 本章动态资料（章纲/上一章真实正文/chapter-delta/角色 state_history 最新块）；换幕重建，hash 失效重建，缺包回退完整读取
 - 补包、重建（同前）
 
 ### state-sync.md
 **定位**：状态回流规则（"当前状态"系统）。
 **操作**：`state.update`。
 **内容**：
-- 触发：写作模式草稿验收后 / 编辑模式 `edit.commit` 后
-- 输入：已验收正文/定稿 + 章纲（chapter_end_state/设定变更通知）+ 幕纲（设定变更通知）+ 既有 settings/
-- 五项回流：角色 state_history 状态块、timeline 章节锚点条目、foreshadowing 台账推进、设定变更通知消费（移除源块）、**幕末章生成幕总结 `summaries/vol-N-act-K.md`（事件链带章节锚点/人物状态/信息差/伏笔/未闭合张力/幕末承接帧）**
+- 触发：草稿完成时 phase: delta / `edit.commit` 后 phase: commit
+- 输入：草稿或最终定稿 + 章纲（chapter_end_state/设定变更通知）+ 幕纲（设定变更通知）+ 既有 settings/
+- 增量字段：角色状态、信息持有、时间线、伏笔、设定通知、正文 source hash 与 chapter_end_state 偏差；由顶层保存到 task 的 chapter-delta/working-state
+- 五项正式回流：角色 state_history 状态块、timeline 章节锚点条目、foreshadowing 台账推进、设定变更通知消费（移除源块）、**幕末章生成幕总结 `summaries/vol-N-act-K.md`**
 - 幂等与回滚：按章节锚点追加，宁少删；幕总结 based_on 相同且未返修时跳过
 - 纪律：只写正文已兑现事实、只追加不覆盖、认知层 1-3 变更须有支撑事件；幕总结是派生缓存非真相源
 
@@ -267,16 +287,16 @@ dispatch.md 中的每张派发卡定义了 operation 的完整契约。九字段
 **定位**：writer base 构造规范。
 **操作**：`write.draft`、`edit.write`。
 **内容**：
-- novel-agent 如何从 `templates/runtime/novel-base.md` 构造单章 writer base
-- 实例化使用 5 项信息：章节标识、任务模式、Prompt 路径、输出路径、返修焦点
+- novel-agent 如何从 `templates/runtime/novel-base.md` 构造单章动态 writer 任务
+- 实例化使用章节标识、任务模式、Prompt 路径、输出路径、返修焦点；可选复用 hash 有效的 writer-profile
 - 声线核对（不写入 base）；contract-4 下「前情上下文」「角色初始状态」是 Prompt 专属事实块，writer 不自行回读上一章正文
-- base 建立身份和创作边界（通用框架），Prompt 提供本章内容与声线
+- base/profile 建立身份和创作边界（通用框架），Prompt 提供本章内容与声线；空返回按产物优先规则最多自动重试一次
 
 ### writing.md
 **定位**：顺序链路调度与写作原则。
 **操作**：`write.draft`、`edit.write`。
 **内容**：
-- **顺序链路执行入口**：5 步链路表（prompt.create → prompt.review → write.draft/edit.write → 顶层阅读 → state.update 的读/写/判定）
+- **顺序链路执行入口**：链路表（幕首章前顶层建 act-pack → prompt.create（读 act-pack + 本章动态资料）→ prompt_lint + 顶层轻量审查 →（按需 prompt.review）→ write.draft/edit.write → 顶层阅读 → state.update delta/commit）
 - 写作模式流程：逐章循环（一章验收后才创建下一章 Prompt）
 - 写作模式阅读信号清单：接受信号 / 重派信号 / 回退信号
 - 编辑模式调度：逐章写作、幕末批量审读
@@ -378,16 +398,16 @@ dispatch.md 中的每张派发卡定义了 operation 的完整契约。九字段
 - **类别**：Prompt 创建
 - **skill**：`skills/prompt.md`（首任务 + `skills/context-pack.md`）
 - **知识挂载**：webnovel、genre、scene、plot、character（首任务建包时读取，后续读 pack）
-- **输入**：context-pack（首任务为知识库原文）、幕级承接快照（优先）、幕纲、本章章纲、**上一章真实正文（必读，同幕读全文 / 跨幕首章另读上一幕幕总结）**、角色档案 state_history、7 个 setting 文件
+- **输入**：幕级复用资料包 act-pack（先核 source hash；本幕稳定资料）、本章章纲、**上一章真实正文（必读，同幕读全文 / 跨幕首章另读上一幕幕总结）**、角色档案 state_history 最新块；包失效时回退完整读取（context-pack、幕纲、handoff、7 个 setting 文件）
 - **返回**：Prompt 路径、本章承接摘要、自检结论表（七核对点）、事实缺口或上游冲突；本卷首任务另返建包摘要
 - **写入**：`prompts/vol-N-ch-M.md`（contract-4 六块，frontmatter 记录 preceding_source）；首任务另写 `settings/context-pack.md`
 
 ### prompt-reviewer
-- **类别**：Prompt 审计（顺序链路默认步骤）
-- **skill**：`skills/prompt.md`「默认 Prompt 审计」
+- **类别**：Prompt 细节审查（**按需派发**：顶层轻量审查发现明确问题、作者要求，或幕内首章/返修重写章被顶层点名时）
+- **skill**：`skills/prompt.md`「两级审查 · 细节审查」
 - **知识挂载**：无
-- **输入**：目标 Prompt → `preceding_source` 对应上一章真实正文 → 幕纲和章纲 → 角色档案 state_history
-- **返回**：PASS / FIX / STOP 报告（9 维度逐项结论）
+- **输入**：目标 Prompt + 顶层指出的疑点 → `preceding_source` 对应上一章真实正文 → 幕纲和章纲 → 角色档案 state_history
+- **返回**：PASS / FIX / STOP 结构化短报告（四类语义结论，机械问题转 micro-fix）
 - **写入**：不写任何产物（报告写入当前 task）
 
 ### writer
@@ -395,8 +415,8 @@ dispatch.md 中的每张派发卡定义了 operation 的完整契约。九字段
 - **skill**：无（上下文由 base + Prompt 组成）
 - **知识挂载**：无（不接触 knowledge/）
 - **输入**：单章 writer base + 单章 Prompt
-- **返回**：完整纯正文或失败原因
-- **写入**：`drafts/vol-N-ch-M.md` 或 task candidate
+- **返回**：固定短状态或失败原因；正文只写目标文件，不在返回消息中回显
+- **写入**：`drafts/vol-N-ch-M.md` 或 task candidate；空返回先做产物检查，缺失/截断最多自动重试一次
 
 ### reader
 - **类别**：正文阅读
@@ -491,7 +511,7 @@ dispatch.md 中的每张派发卡定义了 operation 的完整契约。九字段
 临时任务文件。字段：
 - `task_id`、`operation`、`status`（idle/running/interrupted/completed）
 - `volume`、`scope`、`batch`、`subtasks`、`attempt`、`phase`
-- 顺序链路：`current_chapter`、`prompt_path`、`draft_path`、`prompt_version`、`state_updated`
+- 顺序链路：`current_chapter`、`prompt_path`、`draft_path`、`prompt_version`、`state_delta`；`context`（含 `act_pack_path`/`act_pack_hash`，幕级复用资料包）；可选 `session`、`retry`、`usage`（task-local `usage.jsonl` 路径与最后 call_id）
 
 ### novel-base.md
 Writer base 模板。两部分结构：
@@ -504,7 +524,7 @@ Writer base 模板。两部分结构：
 3. 写作方式 — 基于 Prompt 行动而非大纲
 4. 真实展开 — 具体空间、人物选择、对白、情绪、余波
 5. 展开工具箱 — 场景展开通用要点（防流程化、双方目标、信息密度等）
-6. 文风执行 — 以 Prompt 内承载的声线材料（「本章故事」叙述示范 + 各场「本场声线」落点；contract-2 以「本章质感」为准）为唯一指令源 + 项目级声线硬规则（标点/禁用句式/章末纪律）
+6. 文风执行 — 以 Prompt 内承载的声线材料（「本章故事」叙述示范 + 各场「本场声线」落点；旧版 contract-2 Prompt 以「本章质感」为准）为唯一指令源 + 项目级声线硬规则（标点/禁用句式/章末纪律）
 7. 交付 — 纯正文 + 返回自检陈述（3-4 行）
 
 base 与 Prompt 职责分开：base 提供通用写作框架，Prompt 提供本章内容与声线；base 不复制 Prompt 内容。
@@ -530,4 +550,8 @@ base 与 Prompt 职责分开：base 提供通用写作框架，Prompt 提供本�
 | `migrate.py` | 旧版项目迁移 | 旧项目路径 + 新项目路径 | 新项目 + 迁移报告 |
 | `sync_runtime.py` | 同步 runtime 到已有项目 | 项目路径 | 更新的 agents/skills/templates |
 | `runtime_manifest.py` | 部署清单（供其他工具引用） | — | 文件列表 |
+| `context_cache.py` | 建立/检查派生上下文 hash 清单 | cache 类型 + 来源文件 | cache manifest / stale 状态 |
+| `prompt_lint.py` | Prompt 确定性结构预检 | Prompt 路径 | text/JSON lint 结果 |
+| `state_delta.py` | 按章节锚点写入/检查 task-local delta | 项目根 + task + delta JSON | chapter-delta/working-state |
+| `usage_report.py` | 汇总增量与累计 usage | JSON/JSONL 调用账本 | Markdown/JSON 报告 |
 | `_common.py` | 共享工具函数 | — | read_text / is_relative_to / looks_like_skill_root |

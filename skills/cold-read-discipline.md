@@ -1,5 +1,7 @@
 # 冷读纪律（共享模块）
 
+<!-- changed_in: 0.3.0 -->
+
 本模块是 reader 和 completion-reviewer 共用的冷读协议与分流语义权威源。`skills/review-archive.md` 和 `skills/completion-quality.md` 引用此处，不另建平行表述。
 
 ## 冷读协议

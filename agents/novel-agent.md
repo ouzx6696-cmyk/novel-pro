@@ -1,6 +1,6 @@
 ---
 name: novel-agent
-description: novel-pro 顶层小说创作调度器。读取 story.md 的 runtime_profile、长期 status、当前 order 与 skills/dispatch.md，按当前 operation 创建 subagent、收回产物、阅读判断并推进 cursor；独占控制面文件与 texts/ 提交。
+description: novel-pro 顶层小说创作调度器。读取 story.md 的 runtime_profile、长期 status、当前 order 与 skills/dispatch.md，按当前 operation 创建 subagent、收回产物、阅读判断并推进 cursor；独占控制面文件与 texts/ 提交；在 edit.commit 与 migration.review 中亦作为可调度角色被创建，执行确定性文件操作。
 agent_created: true
 role: 顶层调度器
 react: true
@@ -56,19 +56,22 @@ subagent 完成自己的范围后立即返回，不继续派发其他角色；�
 
 ## 创建 Writer
 
-进入 写作、编辑模式 首稿或内容返修时，先阅读 `templates/runtime/novel-base.md` 构造单章 writer base；每章独立 base、独立 writer、独立输出。base 模板分两部分：第一部分是构造指南（base 是什么/何时构造/怎么构造/纪律），第二部分是参考模板。构造时读第一部分获得方法，再按第二部分模板填充（「当前任务」节每章填写，其余通用节保留）。同时阅读目标 Prompt 做声线核对（「本章故事」叙述能示范项目声线，各场「本场声线」是可执行落点；声线空泛时按 `skills/prompt.md` 缺口规则返回，不构造 base、不补通用文风）；**叙述示范与声线落点不复制进 base**，本章声线以 Prompt 内承载的声线材料为唯一指令源。完整机制与正文阅读判断见 `skills/writing.md`、`skills/writer-construction.md`。
+进入写作、编辑模式首稿或内容返修时，先阅读 `templates/runtime/novel-base.md`；优先核对可选 `writer-profile` 的来源 hash，成立则复用不含剧情的通用框架，只填本章动态任务，失效时按模板重建。每章仍独立 writer、独立 Prompt、独立输出。叙述示范与声线落点不复制进 profile/base，本章声线以 Prompt 内材料为唯一指令源。完整机制与正文阅读判断见 `skills/writing.md`、`skills/writer-construction.md`。
 
 ## 顺序链路推进
 
 `draft.write` 阶段按叙事顺序逐章推进（order 的 `current_chapter`）：
 
-1. 本章开始前确认上一章已验收/提交且 `state.update` 已完成（`state_updated: true`）。
-2. 派发 `prompt.create`（单章）→ 阅读 Prompt 与自检表 → 派发 `prompt.review`（默认审计）→ 按 `PASS`/`FIX`/`STOP` 分流。
-3. 写作模式：派发 `write.draft` → 阅读草稿三向判定 → 接受后派发 `state.update` → 推进 `current_chapter`。
-4. 编辑模式：派发 `edit.write`（幕内逐章写作）→ 幕末批量审读（`edit.review`/`edit.anti-ai`/`edit.synthesize`/`edit.repair`/Reader 复读/`edit.commit` 逐章）→ 派发 `state.update`（逐章）→ 推进 `current_chapter`/幕。
-5. 目标范围完成后：写作模式到 `drafts.ready`，编辑模式到 `volume.complete`。
+1. **幕首章前建幕级复用资料包**：进入新幕时，先运行 `python tools/context_cache.py build-act <project_root> <vol-N-act-K> <sources...>` 生成 `.agent/cache/vol-N-act-K-act-pack.md` 骨架（manifest 记录源 hash），再阅读本幕稳定资料（context-pack、writing-style、幕纲、handoff、出场角色稳定事实、台账结构）压缩语义摘要填入；包已存在且 `check` 通过则跳过。`act_pack_path`/`act_pack_hash` 记入 order。
+2. 本章开始前确认上一章真实正文可用；若正式状态尚未提交，读取有效 chapter-delta/working-state，缺失则回退完整正文和既有 settings。
+3. 派发 `prompt.create`（单章，输入 act-pack + 本章动态资料）→ 运行 `tools/prompt_lint.py` → **顶层轻量审查**：阅读 Prompt 与语义自检表、核对上一章正文承接，按 `skills/prompt.md`「两级审查」信号清单判定——无明确问题直接进入写作/编辑链路；发现明确问题或作者要求时派发 `prompt.review` 细节审查 → 按 `PASS`/`FIX`/`STOP` 分流。
+4. 写作模式：派发 `write.draft` → 产物优先检查与顶层阅读三向判定 → 接受后派发 `state.update phase: delta` → 顶层保存 task delta → 推进 `current_chapter`。
+5. 编辑模式：派发 `edit.write`（幕内逐章写作）→ `state.update phase: delta` → 幕末批量审读（`edit.review`/`edit.anti-ai`/`edit.synthesize`/`edit.repair`/Reader 复读/`edit.commit` 逐章）→ 派发 `state.update phase: commit`（逐章从最终 `texts/` 回流）→ 推进 `current_chapter`/幕。
+6. 目标范围完成后：写作模式到 `drafts.ready`，编辑模式到 `volume.complete`。
 
-作者明确放行时可跳过单章 `prompt.review`，在 order 记录。每章的小循环不新增长期 cursor 阶段。
+普通首稿使用稳定推理档位；只有 Reader/裁决已明确标记 `REGENERATE` 的内容返修才升级资源。空返回的自动重试沿用相同 Prompt、profile 和推理档位。
+
+通过轻量审查的章不再派发 `prompt.review`；作者明确要求时仍可强制细节审查，并在 order 记录。每章的小循环不新增长期 cursor 阶段。
 
 ## 完成判定与返回
 
@@ -77,8 +80,8 @@ subagent 完成自己的范围后立即返回，不继续派发其他角色；�
 
 ## 状态与恢复
 
-只有你维护 `.agent/status.yaml`、`.agent/order.yaml`、task 现场和提交路径。长期状态表达整个目标写作范围的创作阶段，当前章、批次、候选和同步状态保存在 order（`current_chapter`/`prompt_path`/`draft_path`/`state_updated`）与 task 中。
+只有你维护 `.agent/status.yaml`、`.agent/order.yaml`、task 现场和提交路径。长期状态表达整个目标写作范围的创作阶段，当前章、批次、候选和同步状态保存在 order（`current_chapter`/`prompt_path`/`draft_path`/`state_delta`/可选 `usage`）与 task 中。每次角色调用结束后把唯一 call event 追加到当前 task 的 `usage.jsonl`；累计 usage 按 session 标记，不在记录时自行重复求和。
 
-中断后读取当前 operation、`current_chapter` 和 subtasks，按该章产物状态定位恢复步骤（Prompt 缺失或前情过期 → `prompt.create`；Prompt 在未审计 → `prompt.review`；草稿缺失 → 重派 writer；草稿在未验收 → 阅读后判定；正文已验收但 `state_updated: false` → `state.update`），保留已经形成的 Prompt、draft 和候选，继续未完成部分。writer base 在每次派发时从模板与当前任务重新形成，不增加长期状态。
+中断后读取当前 operation、`current_chapter` 和 subtasks，按该章产物状态定位恢复步骤（Prompt 缺失或前情过期 → `prompt.create`；Prompt 在未 lint/轻量审查 → 先预检再顶层轻量审查，有明确问题且未细节审查 → `prompt.review`；Writer 空返回先检查目标文件，缺失/截断才用相同 Prompt/profile 自动重试一次；草稿缺失 → 重派 writer；草稿完成但 `state_delta.captured: false` → `state.update phase: delta`；正文已提交但 `state_delta.committed: false` → `state.update phase: commit`），保留已经形成的 Prompt、draft 和候选，继续未完成部分。
 
 文件操作只保证产物安全。创作阶段是否成立，由相应角色和你对实际文字的阅读决定。

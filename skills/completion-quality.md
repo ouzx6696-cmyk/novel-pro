@@ -1,5 +1,7 @@
 # Completion Quality
 
+<!-- changed_in: 0.3.0 -->
+
 只在用户明确要求全书质检、全本质检、全书返修或完本修改时加载。它扩大阅读范围，但不改变“先读正文、后追根因”的原则，也不把完本任务变成规划字段盘点。
 
 完本任务是当前 order/task 的旁路 operation，不改变长期 cursor。completion-reviewer 和 completion-editor 返回报告或候选；只有 `novel-agent` 持久化 task、控制面和最终提交。

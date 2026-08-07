@@ -107,7 +107,7 @@ result:
   files: [volumes/volume-1.md]
 ```
 
-### 示例3：审查Prompt（受阻）
+### 示例3：审查Prompt（按需细节审查）
 ```markdown
 ## 审查第 5 章 Prompt 可执行性
 
@@ -254,7 +254,7 @@ for task in confirmed_tasks:
 | 创建/完善详细幕纲 | "第 N 卷第 K 幕" | outline.act | act-planner | 5-8分钟 |
 | 创建章纲 | "第 N 卷第 K 幕章纲" | outline.chapters | chapter-planner | 3-5分钟/幕 |
 | 创建 Prompt | "第 N 卷第 K 幕 Prompt" | prompt.create | prompt-crafter | 5-10分钟/幕 |
-| 审查 Prompt | "第 N 卷第 M 章 Prompt" | prompt.review | prompt-reviewer | 2-3分钟/章 |
+| 审查 Prompt | "第 N 卷第 M 章 Prompt" | prompt.review | prompt-reviewer（按需：顶层轻量审查发现明确问题或作者要求时） | 2-3分钟/章 |
 | 写作模式草稿 | "第 N 卷第 M 章草稿" | write.draft | writer | 3-5分钟/章 |
 | 编辑模式首稿 | "第 N 卷第 K 幕" | edit.write → ... → edit.commit | writer + reader + anti-ai | 20-30分钟/幕 |
 | 返修表达问题 | "第 N 卷第 M 章表达" | edit.repair (表达) | anti-ai | 3-5分钟/章 |

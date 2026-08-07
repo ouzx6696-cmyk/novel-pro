@@ -27,16 +27,20 @@ outline.acts：幕地图 + 详细幕纲
   ↓
 outline.chapters：按幕形成章纲（含信息差轨迹/章末状态快照）
   ↓
+幕首章前：顶层建幕级复用资料包 act-pack（.agent/cache/vol-N-act-K-act-pack.md）
+  ↓
 顺序链路（draft.write，逐章推进）：
   第 M 章：
-  prompt.create（读上一章真实正文 → 前情三件套；状态文件 → 角色初始状态）
+  prompt.create（读 act-pack + 本章动态资料；上一章真实正文 → 前情三件套；state_history 最新块 → 角色初始状态）
     ↓
-  prompt.review（默认审计 9 维度）
+  prompt_lint.py 结构预检 → 顶层轻量审查（无明确问题直接进写作）
+    ↓
+  发现明确问题或作者要求 → prompt.review（细节审查）
     ↓
   写作模式 write.draft（快速草稿） 或 编辑模式 edit.write → edit.review → edit.anti-ai
     → edit.synthesize → edit.repair → edit.commit（文学验收）
     ↓
-  state.update（状态回流：角色状态/时间线/伏笔/设定变更通知消费）
+  state.update phase: delta（工作态增量）/ phase: commit（最终 texts 回流）
     ↓
   第 M+1 章
 ```
@@ -57,6 +61,17 @@ outline.chapters：按幕形成章纲（含信息差轨迹/章末状态快照）
 **旁路操作**（不改变长期 cursor）：
 - `completion.inspect`、`completion.revise`（显式完本质检）
 - `alignment`（整卷产物对齐）
+
+## 与 Novel Desk 的交接（TASKS.md）
+
+Novel Desk 存在时，项目根目录 `TASKS.md` 是唯一的作者到 Agent 外壳交接文件，不是第二套创作状态机。字段定义、状态流转与所有权边界以 `templates/TASKS.md` 为权威源。收到"处理任务清单"或发现 Desk 创建的任务时：
+
+1. 读取全部 `pending` 项，核对 `source.path`、`source.content_hash`、可选 `source.anchor` 和 `scope`；来源已变化时先重读并向作者说明差异。
+2. 汇总拟处理的文件、范围和将采用的既有 operation，等待作者在对话中明确确认。
+3. 确认后才把相应项更新为 `in_progress`，并按本文件既有的规划、Prompt、写作、编辑、Reader、完本或迁移流程执行。
+4. 把候选和报告写入既有产物位置；完成、受阻或取消时更新同一项的 `status`、`result.summary` 和 `result.files`。
+
+没有 Desk 时，Skill 不要求 `TASKS.md`，原有对话式使用方式保持不变。迁移不自动搬运 `TASKS.md`：旧项目保留作为协作历史，新项目在第一次创建 Desk 任务时才生成新的清单。
 
 ## 版本门禁与项目迁移
 
@@ -79,7 +94,7 @@ outline.chapters：按幕形成章纲（含信息差轨迹/章末状态快照）
 ### 迁移流程
 
 ```bash
-# 从当前开发版运行迁移工具
+# 从当前版本运行迁移工具
 python tools/migrate.py <旧项目路径> <新项目路径>
 ```
 
@@ -107,20 +122,21 @@ python tools/migrate.py <旧项目路径> <新项目路径>
 ### 创建粒度
 
 - **任务范围**：一次一章，跟随正文顺序创建（顺序链路）
-- **必读上文**：上一章真实正文（验收稿 `drafts/` 或已提交正文 `texts/`）的结尾，提取前情三件套（上章结尾画面/情绪残留/缺口）
-- **必读状态**：角色档案 `state_history` 倒读、`timeline.md`、`foreshadowing.md`
+- **必读上文**：上一章真实正文（验收稿 `drafts/` 或已提交正文 `texts/`）的结尾，提取前情三件套（上章结尾画面/情绪残留/缺口）；可选读取 hash 有效的 chapter-delta
+- **稳定资料**：幕级复用资料包 `.agent/cache/vol-N-act-K-act-pack.md`（顶层幕首章前建立；每章只读此包 + 本章动态资料）；包缺失或失效时回退完整读取（context-pack、幕纲、handoff、`settings/` 六件套）
+- **必读状态**：角色档案 `state_history` 最新块（稳定事实在 act-pack 内）
 - **产出**：`prompts/vol-N-ch-M.md`（`prompt_contract: 4`，六块：前情上下文/本章故事/角色初始状态/人物动机与情绪/场景展开/必守事实与边界；frontmatter 记录 `preceding_source`）
-- **完成标志**：本章 Prompt 落盘、自检表无缺口、顶层读过、审计通过后进入本章写作；不存在"全部 Prompt 就绪"的批量节点
+- **完成标志**：本章 Prompt 落盘、自检表无缺口、顶层读过、审查通过后进入本章写作；不存在"全部 Prompt 就绪"的批量节点
 
-### Prompt 审计（默认步骤）
+### Prompt 两级审查
 
-- **触发时机**：每章 Prompt 落盘后自动执行（作者明确放行时可跳过，顶层在 order 记录）
-- **处理角色**：prompt-reviewer（独立审计，9 维度：结构完整/前情落地与来源可溯/可执行性/四步转化/层间一致性/去 AI/冲突裁定/去重/重排）
-- **结论**：`PASS` → 写作/编辑链路；`FIX` → 返回 prompt-crafter 修复后重审；`STOP` → 交规划层
+- **顶层轻量审查（默认）**：每章 Prompt 落盘并 lint 后执行（不创建子代理）——核对 lint 结果、语义自检表与上一章正文承接；无明确问题直接进入写作/编辑链路
+- **prompt.review 细节审查（按需）**：轻量审查发现明确问题（lint 错误超 micro-fix 边界、语义自检缺口、前情/信息差/可执行性存疑）、作者要求强制，或幕内首章/返修重写章被顶层点名时，才派发 prompt-reviewer 审计真实前情、层间一致、信息差和核心场景可执行性（作者明确放行时可跳过，顶层在 order 记录）
+- **结论**：`PASS` → 写作/编辑链路；机械问题且在 3 处以内 → micro-fix 后重跑 lint；`FIX` → 返回 prompt-crafter 修复后重审；`STOP` → 交规划层
 
 ## 状态同步（state.update）
 
-每章正文被接受（写作模式草稿验收）或提交（编辑模式 `edit.commit`）后，由 continuity-updater 执行状态回流：
+每章草稿完成后由 continuity-updater 先返回 chapter-delta；编辑模式 `edit.commit` 后再从最终 `texts/` 执行正式状态回流：
 
 - 向角色档案 `state_history` 节追加状态变更块（位置/状态/关系/能力/信息持有）
 - 向 `timeline.md` 追加章节锚点时间线条目
@@ -128,19 +144,19 @@ python tools/migrate.py <旧项目路径> <新项目路径>
 - 消费章纲/幕纲中的「设定变更通知」块
 - **幕末章额外生成幕末正文总结 `summaries/vol-N-act-K.md`**（事件链带章节锚点/人物状态/信息差/伏笔/未闭合张力/幕末承接帧）
 
-状态回流保证下一章 Prompt 读到"当前状态"：同幕内 prompt-crafter 读上一章全文建立承接质感，跨幕首章读幕总结作跨幕导航（总结是派生缓存，事实以 settings/ 与正文为准）。幂等：按章节锚点追加，重复执行不产生重复内容。
+chapter-delta/working-state 只作为下一章的临时增量；正式 settings 只由最终 `texts/` 回流。缓存或 delta 缺失时，prompt-crafter 回退到完整上一章正文和既有状态文件。幕总结仍是派生缓存，事实以 settings/ 与正文为准。正式回流按章节锚点追加/覆盖，重复执行不产生重复内容。
 
 ## Writer Base 构造
 
 进入写作模式或编辑模式时：
 
 1. 顶层读取 `templates/runtime/novel-base.md`（部署后位于 `.claude/skill-resources/templates/novel-base.md`）
-2. 为每章构造独立的 writer base（通用框架 + 当前任务）
+2. 为每章构造动态 writer 任务；可复用 hash 有效且不含剧情的 `writer-profile`
 3. 创建独立 writer 并交付：单章 base + 单章 Prompt
 4. Writer 不读知识库、设定或规划，完全依赖 base + Prompt
 
 **关键原则**：
-- 每章独立 base、独立 writer、独立输出
+- 每章独立动态任务、独立 writer、独立输出；profile 失效时回退完整构造
 - Base 与 Prompt 职责分离（base=框架，Prompt=内容）
 - 声线材料全在 Prompt 内，不写入 base
 
@@ -153,9 +169,9 @@ python tools/migrate.py <旧项目路径> <新项目路径>
 **流程**：
 ```text
 第 M 章：
-prompt.create（上一章真实正文 → 前情三件套）
+prompt.create（读 act-pack + 本章动态资料；上一章真实正文 → 前情三件套）
   ↓
-prompt.review（默认审计）
+prompt_lint.py 结构预检 → 顶层轻量审查（无明确问题直接进写作；明确问题或作者要求 → prompt.review 细节审查）
   ↓
 write.draft：构造 base + 创建 writer
   ↓
@@ -163,7 +179,7 @@ writer 写入 drafts/vol-N-ch-M.md
   ↓
 顶层阅读草稿（接受/重派/回退）
   ↓
-接受 → state.update（验收稿回流状态）
+接受 → state.update phase: delta（生成 chapter-delta，不写 settings）
   ↓
 第 M+1 章
 ```
@@ -181,9 +197,9 @@ writer 写入 drafts/vol-N-ch-M.md
 **完整流程**：
 ```text
 逐章写作（幕内草稿按序形成，不立即审读）：
-第 M 章：prompt.create（前情取自上一章草稿全文）→ prompt.review（默认审计）
+第 M 章：prompt.create（读 act-pack + 本章动态资料；前情取自上一章草稿全文 + 可选 chapter-delta）→ prompt_lint.py → 顶层轻量审查（按需 prompt.review）
   ↓
-edit.write：writer ×1 写草稿 drafts/
+edit.write：writer ×1 写草稿 drafts/ → state.update phase: delta
   ↓
 幕末批量审读（幕内全部草稿形成后）：
 edit.review：Reader 按幕冷读（上下文含前幕已提交正文）→ 冷读报告
@@ -200,7 +216,7 @@ Reader 按判定清单复读受影响范围
   ↓
 edit.commit：逐章写入 texts/vol-N-ch-M.md
   ↓
-state.update（逐章定稿回流，同锚点覆盖刷新）→ 幕总结 → 下一幕
+state.update phase: commit（逐章从最终 texts 定稿回流，同锚点覆盖刷新）→ 幕总结 → 下一幕
 ```
 
 **核心机制**：
@@ -223,6 +239,7 @@ state.update（逐章定稿回流，同锚点覆盖刷新）→ 幕总结 → �
 | `settings/timeline.md` | planner, prompt-crafter, continuity-updater | 核对时间先后、人物可知范围；条目由 state.update 按章追加 |
 | `settings/writing-style.md` | prompt-crafter | 提取叙述示范 + 逐场声线落点 |
 | `settings/context-pack.md` | prompt-crafter（后续任务） | 读包替代知识库下钻 |
+| `.agent/cache/*-act-pack.md` | prompt-crafter（幕内每章） | 顶层幕首章前建立的幕级复用资料包；每章读包 + 本章动态资料 |
 | `knowledge/style/` | volume-planner（仅形成阶段） | 选择文风原型 |
 | `knowledge/*` | planner, prompt-crafter | 按需加载，首任务打包进 context-pack |
 
@@ -248,11 +265,11 @@ Prompt「本章故事」叙述示范 + 各场「本场声线」落点
 ### 状态传导链（当前状态系统）
 
 ```text
-正文（验收稿 drafts/ 或定稿 texts/）
-  ↓ state.update（continuity-updater，按章追加）
+草稿（delta）→ task-local chapter-delta/working-state
+最终正文（texts/）→ state.update phase: commit（continuity-updater，按章追加）
 角色档案 state_history + timeline.md + foreshadowing.md（"当前状态"）
   + 幕末章生成 summaries/vol-N-act-K.md（幕末正文总结）
-  ↓ prompt-crafter：同幕读上一章全文（质感）；跨幕首章读幕总结（导航）
+  ↓ prompt-crafter：读 act-pack（幕内稳定资料）；同幕读上一章全文（质感）；跨幕首章读幕总结（导航）
 Prompt「前情上下文」+「角色初始状态」
   ↓ writer 执行
 下一章正文
@@ -274,7 +291,7 @@ Prompt「前情上下文」+「角色初始状态」
 
 ### 控制面文件（novel-agent 独占）
 - `.agent/status.yaml`：长期 cursor 和 migration 状态
-- `.agent/order.yaml`：当前 operation、范围、current_chapter、state_updated、subtasks
+- `.agent/order.yaml`：当前 operation、范围、current_chapter、state_delta、可选 context/session/retry、subtasks
 - `.agent/tasks/<task-id>/`：报告、候选、恢复现场
 - `.agent/run-log.yaml`：重大失败、中断、作者决策
 
@@ -283,6 +300,7 @@ Prompt「前情上下文」+「角色初始状态」
 - `prompts/`：prompt-crafter 写入
 - `drafts/`：writer 写入
 - `texts/`：novel-agent 通过 `edit.commit` 写入（仅此路径）
+- `.agent/tasks/<task-id>/chapter-delta.yaml`、`working-state.yaml`：novel-agent 持久化 continuity-updater 返回的临时增量，不是真相源
 - `settings/character-setting/`（state_history 节）、`timeline.md`、`foreshadowing.md`：continuity-updater 按章追加
 - `summaries/`：continuity-updater 在幕末章生成幕末正文总结
 
@@ -299,7 +317,7 @@ Prompt「前情上下文」+「角色初始状态」
 - ❌ 不做 AI 味判定
 
 **真实判断来源**：
-- Prompt 质量：prompt-reviewer 读 Prompt + 真实上文判断可执行性与前情落地
+- Prompt 质量：顶层轻量审查（默认）；明确问题时 prompt-reviewer 读 Prompt + 真实上文判断可执行性与前情落地
 - 正文质量：Reader 冷读正文后做文学判断
 - 表达质量：Anti-AI 扫描正文中的实际表达问题
 - 返修决策：edit-synthesizer 综合两份报告分级裁决
@@ -315,7 +333,7 @@ Prompt「前情上下文」+「角色初始状态」
 中断后恢复流程：
 
 1. **读取现场**：status、order、当前 task、run-log 相关记录
-2. **定位断点**：按 order 的 `current_chapter` 定位当前章，按该章产物状态决定恢复步骤（Prompt 缺失或前情过期 → `prompt.create`；Prompt 在未审计 → `prompt.review`；草稿缺失 → 重派 writer；草稿在未验收 → 顶层阅读；正文已验收但 `state_updated: false` → `state.update`）
+2. **定位断点**：按 order 的 `current_chapter` 定位当前章，按该章产物状态决定恢复步骤（Prompt 缺失或前情过期 → `prompt.create`；Prompt 在未 lint/轻量审查 → 先预检再顶层轻量审查，有明确问题且未细节审查 → `prompt.review`；Writer 空返回先检查目标文件，缺失/截断才用相同 Prompt/profile 自动重试一次；草稿缺失 → 重派 writer；草稿完成但 `state_delta.captured: false` → `state.update phase: delta`；正文已提交但 `state_delta.committed: false` → `state.update phase: commit`）
 3. **保留产物**：已经形成的规划/Prompt/draft/候选保持原状
 4. **继续未完成**：从该章的最小恢复入口继续
 5. **不重建已成立**：已经由顶层阅读确认的范围不重做

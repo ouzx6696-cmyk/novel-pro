@@ -142,7 +142,7 @@ required_fields: [dramatic_task, start_state, conflict_development, character_ar
 
 ## 设定变更通知（可选，有需要时追加）
 
-**填写说明**：本幕规划确认了会改变项目事实的变更（新角色、关系/能力/世界变化、时间线或伏笔新条目）时，追加此块；由 `state.update` 在对应章节验收/提交后消费并**从源文件中移除**，防止重复消费。通知不是事实——只有正文兑现并验收后，变更才由 state.update 写入 `settings/`。详细消费规则见 `skills/state-sync.md`。
+**填写说明**：本幕规划确认了会改变项目事实的变更（新角色、关系/能力/世界变化、时间线或伏笔新条目）时，追加此块；草稿阶段可在 chapter-delta 中记录兑现情况，最终 `texts/` 提交后由 `state.update phase: commit` 消费并**从源文件中移除**，防止重复消费。通知不是事实——只有最终正文兑现后，变更才写入 `settings/`。详细消费规则见 `skills/state-sync.md`。
 
 ```markdown
 ## 设定变更通知

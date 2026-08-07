@@ -1,5 +1,7 @@
 # Agent 文件规范与返回规范
 
+<!-- changed_in: 0.3.0 -->
+
 本文件是 `agents/` 下所有 agent 文件结构与返回描述的统一权威源。它回答三个问题：**agent 文件应该长什么样、agent 应该怎么知道自己这步做什么、agent 返回时应该带什么**。所有 agent 文件（含新建）按本规范组织；SKILL.md 路由表、dispatch.md 派发卡与本文件互相引用，不另建平行表述。
 
 ## 一、agent 文件五要素结构
@@ -17,7 +19,7 @@
 frontmatter 规范：
 
 - `name` / `description`（含可执行定位，如"一次负责一卷"）/ `agent_created: true` / `role` / `react: true` 必须有。
-- `changed_in`：记录该文件最近一次被修改的发行号（如 `"0.2.3"`）。
+- `changed_in`：记录该文件最近一次被修改的发行号（如 `"0.3.0"`）。
 - `skills` / `knowledge`：挂载本角色需要加载的模块与知识索引；**设计例外**——`writer`（零知识隔离，上下文由 base + Prompt 组成）、`reader` 与 `completion-reviewer`（冷读保护，首读不预挂知识）不挂 `skills`/`knowledge`，其诊断所需的模块（如 `skills/review-archive.md`、`skills/cold-read-discipline.md`）由 dispatch 在创建时按派发卡注入，agent 正文写明"首读后才加载"。
 
 ## 二、返回四要素
@@ -29,8 +31,29 @@ frontmatter 规范：
 3. **下一跳信号**：返回结果决定下一 operation 的选择时，明确写出判断依据。例如 Reader 的"建议处理角色"决定 `edit.repair` 的分流（writer / prompt-crafter / planner / anti-ai）；prompt-crafter 的自检结论表决定顶层抽查范围。
 4. **失败/冲突证据**：无法完成时的具体缺口描述（缺失前提事实、规划冲突位置、Prompt 无法执行的根因、需上游处理的问题）。
 
+### 成功路径短返回
+
+成功路径不得回显正文、Prompt、规划全文、已读取文件内容或长篇分析。默认使用以下短结构；没有问题时 `issues` 为空：
+
+```yaml
+status: ok
+artifact: {实际产物路径，或 report-only}
+verdict: {PASS / completed / accepted}
+next: {下一 operation 或 return-to-top}
+issues: []
+```
+
+只有 `FIX`、`STOP`、失败、冲突或需要上游决策时，才追加最小证据与修复范围。证据使用文件路径、章节锚点和必要短引文，不复制整份产物。Writer 的正文完整性由目标文件与顶层阅读确认，返回消息不回显正文。
+
+### 调用与 usage 记录
+
+Agent 不直接写 `.agent` usage 文件；novel-agent 在收到调用结果后为每次调用生成唯一 `call_id` 并记录一条增量事件。推荐字段：`call_id`、`parent_call_id`、`session_id`、`role`、`operation`、`chapter`、`attempt`、`usage_mode`、`usage`、`cumulative_usage`、`input_hashes`、`status`、`artifact`、`artifact_valid`、`retried`、`retry_of`。恢复同一 Agent 时若宿主返回累计 usage，标记 `usage_mode: cumulative`；由 `tools/usage_report.py` 按同一 `session_id`（缺失时退回 `call_id`）计算增量，禁止把累计值重复加入总量。
+
+默认账本位置为 `.agent/tasks/<task-id>/usage.jsonl`，由 novel-agent 逐调用追加；order 的可选 `usage.ledger_path` 指向该文件。任务收尾或诊断时运行 `tools/usage_report.py <ledger> --out <report>`，报告只汇总短统计，不复制正文、Prompt 或长文件清单。
+
 ## 三、引用与一致性
 
 - agent 正文引用模块/知识/模板时使用仓库源码路径（`skills/`、`knowledge/`、`templates/runtime/`）；部署后的项目内使用 `.claude/` 部署路径。
 - agent 的「本步任务」与 dispatch.md 派发卡的「创建角色/角色输入/允许写入/返回顶层」必须一致；「调用与输入」与派发卡「角色输入」一致。
 - 新增或修改 agent 时，同步核对：dispatch.md 对应派发卡、SKILL.md 路由表与角色地图、docs/interface-reference.md 角色说明。
+- 可选缓存、usage 字段或短返回字段缺失时按既有 0.3 行为继续，不得因此要求项目迁移。

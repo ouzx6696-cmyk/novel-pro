@@ -1,5 +1,7 @@
 # Planning
 
+<!-- changed_in: 0.3.0 -->
+
 小说项目从题材选择开始。初始化根据题材建立项目骨架，并把长期 cursor 放在 `outline.volume`。真正的创作依次完成卷纲与设定、幕结构、章纲和 Prompt；每一层只展开下一层需要的内容。`outline.acts` 是长期幕阶段，`outline.act-map` 和 `outline.act` 只是该阶段的临时 operation。
 
 ## 规划链执行入口（先读这一节）

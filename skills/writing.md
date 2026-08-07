@@ -17,15 +17,17 @@
 
 | 步骤 | operation | 角色 | 读 | 写 | 判定 → 下一跳 |
 |---|---|---|---|---|---|
-| 1 | `prompt.create` | prompt-crafter ×1 | 本章章纲（含 `info_gap`/`chapter_end_state`）、**上一章真实验收稿/已提交正文（必读）**、角色档案 `state_history`、`timeline.md`、`foreshadowing.md`、幕级承接快照、幕纲、context-pack、`writing-style.md` | `prompts/vol-N-ch-M.md`（`prompt_contract: 4`，frontmatter 记录 `preceding_source`） | 自检表无缺口、顶层读过 → 步骤 2 |
-| 2 | `prompt.review` | prompt-reviewer ×1 | 目标 Prompt + `preceding_source` 对应正文 + 幕纲 + 章纲 + 角色状态 | 审计报告（当前 task） | `PASS` → 步骤 3；`FIX` → 回步骤 1；`STOP` → 顶层交规划层 |
-| 3 | `write.draft` / `edit.write` | writer ×1 | 单章 base（顶层构造）+ 目标 Prompt | `drafts/vol-N-ch-M.md` | writer 窗口完成 → 写作模式步骤 4 / 编辑模式步骤 3'（见下） |
+| 0 | —（建包） | 顶层 | 本幕稳定资料（context-pack、writing-style、幕纲、handoff、出场角色稳定事实、台账结构） | `.agent/cache/vol-N-act-K-act-pack.md`（manifest + 语义摘要） | 幕首章 `prompt.create` 前执行；包已存在且 hash 有效 → 跳过 |
+| 1 | `prompt.create` | prompt-crafter ×1 | 幕级复用资料包 `act-pack`（先核 source hash）、**本章章纲**、**上一章真实验收稿/已提交正文（必读）**、上一章 chapter-delta（若有）、出场角色档案 `state_history` 最新块（跨幕首章另读上一幕幕总结）；包失效时回退完整读取 | `prompts/vol-N-ch-M.md`（`prompt_contract: 4`，frontmatter 记录 `preceding_source`） | lint 无错误、语义自检无缺口、顶层读过 → 步骤 2 |
+| 2 | —（轻量审查） | 顶层 | lint 结果、目标 Prompt、语义自检表、上一章正文（承接核对） | 无（疑点写入当前 task） | 无明确问题 → 步骤 3；发现明确问题或作者要求 → `prompt.review`（步骤 2'）；机械问题 → micro-fix 后重跑 lint；`STOP` 级 → 顶层交规划层 |
+| 2' | `prompt.review`（按需） | prompt-reviewer ×1 | lint 结果、目标 Prompt、顶层指出的疑点 + `preceding_source` 对应正文 + 幕纲 + 章纲 + 角色状态 | 语义审计短报告（当前 task） | `PASS` → 步骤 3；机械问题 → micro-fix 后重跑 lint；`FIX` → 回步骤 1；`STOP` → 顶层交规划层 |
+| 3 | `write.draft` / `edit.write` | writer ×1 | 单章动态任务 + 可选稳定 writer-profile + 目标 Prompt | `drafts/vol-N-ch-M.md` | 先检查文件产物；完整 → 写作模式步骤 4 / 编辑模式步骤 3'；缺失或截断 → 同上下文自动重试至多一次 |
 | 4 | —（顶层阅读） | 顶层 | 实际草稿 | — | 阅读信号清单：接受 / 同一 Prompt 重派 / 回退 | `state.update`、重派（回步骤 3）或 `prompt.create`（回步骤 1，必要时回规划层） |
-| 5 | `state.update` | continuity-updater ×1 | 验收稿（写作模式）或定稿（编辑模式）、章纲/幕纲「设定变更通知」、既有 settings | `settings/character-setting/*` 状态块、`timeline.md` 条目、`foreshadowing.md` 台账；移除已消费通知块 | 四项回流完成 → 下一章步骤 1（order `current_chapter` 推进）或终点 |
+| 5 | `state.update` | continuity-updater ×1 | 草稿或最终定稿、章纲/幕纲「设定变更通知」、既有 settings | `phase: delta` 返回 chapter-delta 由顶层写 task；`phase: commit` 从最终 `texts/` 更新 settings | delta 捕获后可进下一章；正式提交后 commit 幂等完成 |
 
-首章（卷首或每幕首章）的步骤 1 前情来源：幕纲 `start_state` 与上一幕最后一章真实正文（若已存在）。编辑模式在第 3 步后不立即审读：幕内草稿逐章形成后，在**幕末统一进入批量审读**（`edit.review` Reader 按幕冷读 → `edit.anti-ai` 同幕全量扫描 → `edit.synthesize` 整体裁决 → `edit.repair` 分流返修 → Reader 复读 → `edit.commit` 逐章提交 → `state.update` 逐章回流）。完整编辑闭环见 `skills/review-archive.md`「阅读闭环步骤（六步执行表）」。
+首章（卷首或每幕首章）的步骤 1 前情来源：幕纲 `start_state` 与上一幕最后一章真实正文（若已存在）。编辑模式在第 3 步后先执行轻量 `state.update phase: delta`，再进入下一章；幕内草稿逐章形成后，在**幕末统一进入批量审读**（`edit.review` Reader 按幕冷读 → `edit.anti-ai` 同幕全量扫描 → `edit.synthesize` 整体裁决 → `edit.repair` 分流返修 → Reader 复读 → `edit.commit` 逐章提交 → `state.update phase: commit` 逐章正式回流）。完整编辑闭环见 `skills/review-archive.md`「阅读闭环步骤（六步执行表）」。
 
-构造单章 base 的步骤（每章一次，在创建 writer 之前）：读 `templates/runtime/novel-base.md` 第一部分获得构造方法 → 核对目标 Prompt「本章故事」叙述能示范项目声线且各场「本场声线」是可执行的落点（声线空泛或文风未确认则按 `skills/prompt.md` 缺口规则返回，不构造 base）→ 按第二部分模板填「当前任务」节（mode/chapter/prompt/output/repair_focus）→ 其余通用节按模板原样保留 → base 与 Prompt 共同交付 writer。**叙述示范与声线落点不写入 base**，本章声线以 Prompt 内承载的声线材料（叙述示范 + 各场声线落点；contract-3 以「本章质感」为准，contract-4 含「前情上下文」与「角色初始状态」）为唯一指令源。
+构造 Writer 上下文时，先核对可选 `.agent/cache/writer-profile.md` 的来源 hash：有效则复用其中不含剧情的通用框架与项目级硬规则，只填写本章动态任务；缺失或失效则按 `templates/runtime/novel-base.md` 完整构造。每章仍创建全新 writer，叙述示范与声线落点不写入 profile 或 base，本章声线只由目标 Prompt 承载。
 
 ## 真实展开
 
@@ -47,20 +49,21 @@ Prompt 的字段是脚手架，不是正文分镜。writer 可以调整场景顺
 
 ```text
 outline.chapters（章纲完成）
+→ 顶层建幕级复用资料包 act-pack（幕首章 prompt.create 前）
 → 第 M 章：
-   prompt.create（上一章真实正文 → 前情三件套；状态文件 → 角色初始状态）
-   → prompt.review（默认审计）
+   prompt.create（读 act-pack + 本章动态资料；上一章真实正文 → 前情三件套；state_history 最新块 → 角色初始状态）
+   → 顶层轻量审查（lint + 阅读；无明确问题直接进写作，有明确问题 → prompt.review 细节审查）
    → write.draft：构造 writer base，writer 写 drafts/vol-N-ch-M.md
    → 顶层阅读并三向判定（接受 / 重派 / 回退）
-   → 接受后 state.update（验收稿回流状态）
+   → 接受后 state.update phase: delta（生成 working-state/chapter-delta，不写 settings）
 → 全部目标章完成 → drafts.ready
 ```
 
-写作模式仍由顶层阅读实际草稿，但不进入编辑模式 Reader、表达编辑和 `texts/` 提交。正文执行不足时沿用同一 Prompt 重派 writer；Prompt 不足时回到 `prompt.create`，不靠字数或字段补齐。
+写作模式仍由顶层阅读实际草稿，但不进入编辑模式 Reader、表达编辑和 `texts/` 提交。正文执行不足时沿用同一 Prompt 重派 writer；自动重试只处理文件缺失/截断且最多一次，文学执行不足仍由顶层阅读后明确重派。Prompt 不足时回到 `prompt.create`，不靠字数或字段补齐。
 
 ### 写作模式调度
 
-写作模式从 `outline.chapters` 完成后进入：按叙事顺序逐章推进（order 的 `current_chapter`），每章一个小循环，**一章验收后才创建下一章 Prompt**——第 N+1 章 Prompt 的前情上下文直接取自第 N 章真实验收稿，角色初始状态取自已回流的状态文件。已有草稿保留，重派不覆盖。
+写作模式从 `outline.chapters` 完成后进入：按叙事顺序逐章推进（order 的 `current_chapter`），每章一个小循环，**一章验收后才创建下一章 Prompt**——第 N+1 章 Prompt 的前情上下文直接取自第 N 章真实验收稿，角色初始状态由既有 settings 加上当前 task 的 working-state/chapter-delta 补齐。缓存或 delta 缺失时回退到完整正文与既有状态文件。已有草稿保留，重派不覆盖。
 
 顶层阅读草稿后，根据正文实际阅读体验选择下一步：读者能够跟上人物正在做什么、为什么这么做，并感到选择带来的变化时接受草稿；正文把行动、反制、选择或后果压成提要，或人物反应与压力脱节时，使用同一 Prompt 创建新的 writer；Prompt 本身缺少可展开内容时，把对应章节交回 Prompt 创建阶段。文件存在、字段齐全和字数达到参考值都不能替代这次阅读。
 
@@ -87,7 +90,7 @@ outline.chapters（章纲完成）
 
 ## 编辑模式
 
-编辑模式在顺序链路中**逐章写作、幕末批量审读**：每章 `prompt.create` → `prompt.review` → `edit.write`（writer ×1 写草稿），幕内全部草稿形成后统一进入审读链（`edit.review` Reader 按幕冷读 → `edit.anti-ai` 同幕全量扫描 → `edit.synthesize` 整体裁决 → `edit.repair` 分流返修 → Reader 复读 → `edit.commit` 逐章提交 → `state.update` 逐章回流）→ 下一幕。`edit.write` 使用与写作模式相同的单章 writer 创建方式；幕内草稿形成阶段顶层不逐章验收，验收随幕末审读进行。
+编辑模式在顺序链路中**逐章写作、幕末批量审读**：每章 `prompt.create` → 顶层轻量审查（按需 `prompt.review`）→ `edit.write`（writer ×1 写草稿）→ `state.update phase: delta`，幕内全部草稿形成后统一进入审读链（`edit.review` Reader 按幕冷读 → `edit.anti-ai` 同幕全量扫描 → `edit.synthesize` 整体裁决 → `edit.repair` 分流返修 → Reader 复读 → `edit.commit` 逐章提交 → `state.update phase: commit` 逐章正式回流）→ 下一幕。`edit.write` 使用与写作模式相同的单章 writer 创建方式；幕内草稿形成阶段顶层不逐章验收，验收随幕末审读进行。
 
 幕末审读时，Reader 按幕顺序冷读本幕全部草稿（上下文含前幕已提交正文）；`edit.anti-ai` 随后对同幕章节全量扫描表达问题；`edit.synthesize` 综合两份报告给出整体返修意见，顶层据此选择返修路径：
 
@@ -103,12 +106,14 @@ outline.chapters（章纲完成）
 
 ## 恢复
 
-order 保存当前章（`current_chapter`）、任务模式、Prompt 路径、草稿路径、`state_updated` 和 subtask 状态。中断后，顶层读取 status/order 并按该章产物状态定位恢复步骤：
+order 保存当前章（`current_chapter`）、任务模式、Prompt 路径、草稿路径、`state_delta`、可选 context/session/retry 和 subtask 状态。中断后，顶层读取 status/order 并按该章产物状态定位恢复步骤：
 
 - Prompt 缺失，或 `preceding_source` 已变（上一章正文被返修重写）→ 从 `prompt.create` 重做。
-- Prompt 在但未审计 → 从 `prompt.review` 继续。
-- 草稿缺失 → 为未完成章节重新构造单章 base 并重派 writer。
+- Prompt 在但未轻量审查 → 先执行顶层轻量审查；有明确问题且未细节审查 → 从 `prompt.review` 继续。
+- Writer 返回为空/取消/异常 → 先检查目标文件；完整则进入顶层阅读，缺失或截断才用相同 Prompt/profile 自动重试一次，第二次失败保留现场并停止盲目重派。
+- 草稿缺失 → 为未完成章节构造动态任务并复用有效 profile（失效时完整重建），按上述一次重试规则执行。
 - 草稿在但未验收/未提交 → 顶层阅读当前文件后决定接受、重派或回退。
-- 正文已验收但 `state_updated: false` → 从 `state.update` 继续（已同步章节不重复同步）。
+- 草稿已完成但 `state_delta.captured: false` → 从 `state.update phase: delta` 继续。
+- 正文已提交但 `state_delta.committed: false` → 从 `state.update phase: commit` 继续（同 hash 已提交章节不重复同步）。
 
-单章 base 是可重新构造的派发上下文，不增加长期状态。恢复是否继续某一章节由顶层阅读当前文件和任务现场后决定。
+writer-profile、chapter-context 和 chapter-delta 都是可失效、可重建的派生上下文，不增加长期状态。恢复是否继续某一章节由顶层阅读当前文件、来源 hash 和任务现场后决定。

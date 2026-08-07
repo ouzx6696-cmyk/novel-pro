@@ -180,7 +180,7 @@ prompt-crafter 完成每份 Prompt 后，依次执行以下九项检查：
 ## 六、与既有契约的关系
 
 - 本文档是 `skills/prompt.md` 的方法论补充，不另行规定模板结构；模板结构（六块）以 `skills/prompt.md` 为准，本文档只规范各块的自包含化嵌入方式。
-- 本文档中的自检协议替代 prompt-crafter 原有的隐式判断，不新增脚本门禁；独立审计由默认步骤 `prompt.review`（prompt-reviewer）承担，其 9 维度方法论以 `agents/prompt-reviewer.md` 为权威源。
+- 本文档中的自检协议替代 prompt-crafter 原有的隐式判断，不新增脚本门禁；语义核对先由顶层轻量审查承担（两级审查默认步骤），明确问题时由按需 `prompt.review`（prompt-reviewer）细节审查，其 9 维度方法论以 `agents/prompt-reviewer.md` 为权威源。
 - 声线来源 `settings/writing-style.md` 在 prompt-crafter 的创作上下文中已规定读取，本文档不改变这个读取规则，只规范读取后如何转化为叙述示范与逐场落点。
 - Reader 冷读协议不变：Reader 仍只读正文，首读阶段不读 Prompt 或本文档。
 - `context-pack.md` 的打包来源中，本文档应被纳入第 4 节（场景写法工具箱）的打包范围，作为一个方法条目。

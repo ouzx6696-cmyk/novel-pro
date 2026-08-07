@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Small stdlib helpers shared by source-side tools."""
 
-import re
 import sys
 from pathlib import Path
 
@@ -33,14 +32,3 @@ SKILL_MARKERS = ("SKILL.md", "skill.json", "agents", "skills", "knowledge", "too
 def looks_like_skill_root(path, min_markers=4):
     path = Path(path)
     return path.is_dir() and sum((path / marker).exists() for marker in SKILL_MARKERS) >= min_markers
-
-
-_VERSION_RE = re.compile(r"(?m)^\s*-?\s*(?:\*\*)?skill_version(?:\*\*)?\s*:\s*['\"]?([^'\"\s]+)")
-
-
-def story_version(path):
-    path = Path(path)
-    if not path.is_file():
-        return None
-    match = _VERSION_RE.search(read_text(path))
-    return match.group(1) if match else None

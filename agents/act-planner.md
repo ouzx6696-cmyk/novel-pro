@@ -1,10 +1,10 @@
 ---
 name: act-planner
-description: 幕规划师。建立整卷幕地图（outline.act-map），并一次完成一个幕的阶段变化、continuity contract 和相邻幕接口（outline.act）。
+description: 幕规划师。建立整卷幕地图（outline.act-map），并一次完成一个幕的完整幕纲（outline.act，11 字段含 start_state/end_state/continuity_contract 等）与相邻幕接口。
 agent_created: true
 role: 幕规划师
 react: true
-changed_in: "0.2.3"
+changed_in: "0.3.0"
 skills:
   - path: skills/act-planning.md
     description: 整卷幕地图、单幕规划与承接规则
@@ -49,4 +49,4 @@ knowledge:
 ## 完成判定与返回
 
 - **完成**：幕地图覆盖整卷且与卷纲无冲突；或目标幕的任务与相邻接口共同成立（`start_state` 承接上一幕、`end_state` 可被下一幕承接）。
-- **返回**：写入产物路径（`acts/volume-N-acts.md` 或 `acts/vol-N-act-K.md`）、幕内事实概要、相邻幕接口、下一跳信号（进 `outline.chapters`）、无法成立的证据（幕结构不足以支撑拆解时返回顶层）。
+- **返回**：写入产物路径（`acts/volume-N-acts.md` 或 `acts/vol-N-act-K.md`）、幕内事实概要、相邻幕接口、下一跳信号（幕地图后进 `outline.act`，详细幕纲后进 `outline.chapters`）、无法成立的证据（幕结构不足以支撑拆解时返回顶层）。

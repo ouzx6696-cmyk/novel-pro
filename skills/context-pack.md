@@ -1,5 +1,7 @@
 # Context Pack（预制包）
 
+<!-- changed_in: 0.3.0 -->
+
 本模块规定 `settings/context-pack.md` 的建包、用包、补包与重建规则。它是 prompt-crafter 在 Prompt 创建阶段的正式知识消费形态：把知识库的**通用写作底座**（连载基线、剧情/场景/人物方法）与本卷**类型风格知识**（题材画像）按题材裁剪压缩为一包，避免每个 Prompt 任务重复下钻 8–18 个知识文件。
 
 本模块只做契约整合与一份项目级预制产物，不新增角色、不增加门禁或评分脚本；pack 的有效性由阅读判断（顶层、prompt-reviewer、alignment）保证。
@@ -17,7 +19,7 @@
 
 1. **底座层（必选，跨题材）**：读取 `knowledge/webnovel/index.md`（连载基线，含 `fanqie-baseline.md`）、`knowledge/scene/index.md`（含自包含提示词方法 `self-contained-prompt.md`）、`knowledge/plot/index.md`（冲突/钩子/节奏/伏笔等本卷用得到的剧情方法；**不含幕拆解方法 `act-decomposition.md`**——那是 act-planner 的拆幕方法，prompt-crafter 不拆幕，不进包）、`knowledge/character/index.md`；按本卷叙事重心从 scene/plot/character 选择子文件（见下方「建包子文件选择清单」）。
 2. **类型层（叠加，按题材）**：读取 `knowledge/genre/index.md`（+父题材速写）与 `settings/genre-setting.md` 的已确认题材期待，叠加当前 `genre_id` 的题材画像。
-3. 把底座方法与题材差异裁剪压缩为 8 节（读者与节奏基线、题材执行要点、冲突、钩点与节奏方法、场景写法工具箱[按场景性质分条索引，含自包含提示词方法]、人物决策与对手压力、文风提取接口[风格提示词指示句 + 两层提取 + 文章结构]、禁用与边界、使用纪律）。
+3. 把底座方法与题材差异裁剪压缩为 8 节（1 读者与节奏基线、2 题材执行要点、3 冲突/钩点与节奏方法、4 场景写法工具箱[按场景性质分条索引，含自包含提示词方法]、5 人物决策与对手压力、6 文风提取接口[风格提示词指示句 + 两层提取 + 文章结构]、7 禁用与边界、8 使用纪律）。
 4. 写入 `settings/context-pack.md`，头部 frontmatter 记录 `pack_contract`、`volume`、`genre_id`、`parent_genre`、`formed_by`、`sources`、`style_pointer`。
 5. 继续完成本任务范围的章级 Prompt（同一任务内，不新增 operation）。
 
@@ -44,6 +46,28 @@
 - `settings` 事实文件、幕纲、章纲、承接入口照常按章筛读；**承接入口在顺序链路下特指上一章真实正文（验收稿或已提交正文）**——前情三件套与角色当前状态从正文与 `state_history` 提取，不由 pack 承担。
 - `settings/writing-style.md` 仍每任务读（它是项目确认物、叙述示范与声线落点的源头，保留；pack 第 6 节固化的是"怎么提取"，省去的是推理成本而非这次读取）。
 - 每章 Prompt 只取本章所需，不把包整段搬进 Prompt；同章多场、多章之间不得复诵同一条技法指令原文，每次取用必须落到当场的人、事、物上；不把方法名、来源名、术语写进 Prompt 或正文产物。
+
+## 幕级复用资料包（act-pack）
+
+**幕内每章 `prompt.create` 的主读取对象**：顶层在幕首章 `prompt.create` 之前建立 `.agent/cache/vol-N-act-K-act-pack.md`，把幕内稳定或缓变资料压缩为一包；幕内后续每章只读该包 + 本章动态资料，替代逐文件重建幕级理解。它是派生加速层，不是新的规划、设定或状态文件。
+
+### 建立（顶层，幕首章前）
+
+1. 顶层运行 `python tools/context_cache.py build-act <project_root> <vol-N-act-K> <sources...>` 生成包骨架（manifest 记录源路径与 SHA-256）。
+2. 顶层阅读稳定源并压缩语义摘要，填入包的 Semantic Summary 区：context-pack 摘要、writing-style 提取卡、题材/作者边界、当前幕 continuity contract、handoff 摘要、出场角色稳定事实（欲望/恐惧/盲点/关系，不含 `state_history` 动态块）、timeline/foreshadowing 台账结构（幕开始时锚点）。
+3. 落盘后即成为本幕默认读取对象。不新增角色：建包是顶层动作，语义压缩由顶层阅读后完成，脚本只生成/校验 manifest，不做文学判断。
+
+### 用包（幕内每章 prompt.create）
+
+- 读 `.agent/cache/vol-N-act-K-act-pack.md`（1 个文件，先 `check` hash）。
+- **本章动态资料仍按章读取**：本章章纲、上一章真实正文（前情三件套来源）、上一章 chapter-delta（若有）、出场角色 `state_history` 最新块、跨幕首章的上一幕幕总结。
+- 包缺失或 hash 失效时回退完整读取（context-pack、幕纲、handoff、`settings/` 六件套按章筛读），并向顶层说明原因。
+
+### 维护
+
+- **换幕重建**；幕内源文件（幕纲、handoff、settings 等）变更且 hash 失效时重建。
+- 包是派生加速层，事实以 `settings/` 与正文为准；上一章真实正文、本章章纲、角色最新状态块、时间线/伏笔 delta 不进入稳定摘要，仍按章读取。
+- `tools/context_cache.py` 只生成/校验来源 manifest；语义压缩由顶层阅读后形成，脚本不做文学判断。
 
 ## 补包（pack 未覆盖的场景/方法）
 

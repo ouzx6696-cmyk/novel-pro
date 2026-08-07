@@ -45,7 +45,7 @@ texts/vol-N-ch-M.md (正文)
 
 ### 模板元信息
 
-核心规划模板（story/CLAUDE/TASKS/卷纲/幕纲/章纲/人物卡）含 YAML frontmatter 元信息（`template_version`、`required_fields`、`optional_fields` 等，各模板以实际字段为准）；`settings/` 下的写作辅助模板（genre-setting/world-setting/writing-style/writing-preferences/foreshadowing/timeline）为无 frontmatter 的正文模板。字段的权威定义以 `skills/planning.md`、`skills/act-planning.md`、`skills/prompt.md` 与各模板内「填写说明」为准。
+核心规划模板的 frontmatter 元信息并不统一，以实际文件为准：`story.md`、`CLAUDE.md`、幕纲（`acts/volume-N-acts.md`、`acts/vol-N-act-K.md`）、章纲（`chapters/vol-N-ch-M.md`）、人物卡（`characters/character-profile.md`）与幕总结（`summaries/vol-N-act-K.md`）含 YAML frontmatter（`template_version`、`required_fields`、`optional_fields` 等）；`TASKS.md` 无 frontmatter，其 schema 权威以首部 HTML 注释承载；卷纲模板 `volumes/volume-N.md` 的 frontmatter 为 `volume_contract`/`volume`/`genre_id` 字段（无 `template_version`）。`settings/` 下的写作辅助模板（genre-setting/world-setting/writing-style/writing-preferences/foreshadowing）为无 frontmatter 的正文模板，仅 `timeline.md`（`template_version: "0.3.0"`）与 `context-pack.md`（`pack_contract` 等）含 frontmatter。字段的权威定义以 `skills/planning.md`、`skills/act-planning.md`、`skills/prompt.md` 与各模板内「填写说明」为准。
 
 ---
 
@@ -292,7 +292,7 @@ A: 详细到act-planner能据此拆幕。如果拆不出来，说明还不够具
 **何时填写**：
 - volume-planner 创建主要人物
 - 规划时发现需要补充时更新
-- **`state_history` 节由 state.update（continuity-updater）在每章验收/提交后按章追加**，planner 不手动维护；规划需要变更时通过「设定变更通知」提出
+- **`state_history` 节由 `state.update phase: commit`（continuity-updater）在最终 `texts/` 提交后按章追加**；草稿阶段只形成 task-local chapter-delta，planner 不手动维护；规划需要变更时通过「设定变更通知」提出
 
 #### 核心原则
 
@@ -543,7 +543,7 @@ style/原型
 
 ---
 
-### 9. TASKS.md - 任务清单
+### 10. TASKS.md - 任务清单
 
 **位置**：项目根目录 `TASKS.md`
 

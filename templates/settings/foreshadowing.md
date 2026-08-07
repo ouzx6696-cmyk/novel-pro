@@ -6,7 +6,7 @@
 
 ## 台账维护（state.update）
 
-`state.update`（continuity-updater）在每个已验收/提交章节后维护台账：
+草稿完成后先记录 task-local chapter-delta；`state.update phase: commit`（continuity-updater）在每个最终 `texts/` 章节后维护台账：
 
 - **新增**：正文或设定变更通知首次出现伏笔 → 追加条目（`### vol-{N}-ch-{M}：{伏笔标识}`，锚点幂等）
 - **推进/兑现**：正文实际推进或兑现 → 更新 `当前状态`（未兑现/部分兑现/已兑现/已放弃）并注明章节

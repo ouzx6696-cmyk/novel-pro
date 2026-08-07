@@ -62,7 +62,7 @@ Commit  解决: 最终验收和提交
 
 ### 第1步：edit.write - Writer写首稿
 
-**做什么**：幕内逐章写作——为每章构造writer base，创建独立writer，交付Prompt；一章写完才写下一章（顺序链路，前情真实），**幕内全部草稿形成后才进入审读**。
+**做什么**：幕内逐章写作——为每章构造动态 writer 任务（可复用 hash 有效且不含剧情的 writer-profile），创建独立 writer，交付 Prompt；一章写完后生成 chapter-delta 才写下一章（顺序链路，前情真实），**幕内全部草稿形成后才进入审读**。
 
 **输入**：
 - 单章writer base（顶层构造）

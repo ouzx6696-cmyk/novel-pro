@@ -49,7 +49,15 @@ SKILL_FILES = [
     "writing.md",
 ]
 
-PROJECT_TOOL_FILES = ["migrate.py", "runtime_manifest.py", "sync_runtime.py"]
+PROJECT_TOOL_FILES = [
+    "context_cache.py",
+    "migrate.py",
+    "prompt_lint.py",
+    "runtime_manifest.py",
+    "state_delta.py",
+    "sync_runtime.py",
+    "usage_report.py",
+]
 
 
 def agent_target(name):

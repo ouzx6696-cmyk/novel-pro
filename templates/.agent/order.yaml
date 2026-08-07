@@ -14,6 +14,29 @@ prompt_path: ""           # 当前章 Prompt 路径
 draft_path: ""            # 当前章草稿（写作模式）/正文（编辑模式）路径
 prompt_version: ""        # 当前章 Prompt 版本（prompt_contract），审计与恢复用
 state_updated: false      # 当前章状态同步（state.update）是否已完成
+state_delta:
+  path: ""                # 可选：当前章 working-state/chapter-delta 路径
+  source_path: ""         # delta 对应的草稿或正文路径
+  source_hash: ""         # source_path 的 SHA-256
+  captured: false          # 是否已完成临时状态捕获
+  committed: false         # 是否已由正式 state.update 回流
+context:
+  act_pack_path: ""        # 幕级复用资料包 act-pack 路径（顶层幕首章前建立）
+  act_pack_hash: ""        # act-pack 当前 source hash 校验结果（check 通过为有效）
+  writer_profile_path: ""  # 可选：稳定 Writer profile
+  writer_profile_hash: ""
+  chapter_context_path: "" # 可选：当前章动态上下文
+  source_hashes: {}        # 缓存引用的源文件 hash
+session:
+  prompt_crafter: ""      # 可选：幕内复用 session 标识
+  created_at: ""
+retry:
+  writer: 0
+  max_auto: 1
+usage:
+  ledger_path: ""        # 可选：当前 task 的 usage.jsonl
+  report_path: ""        # 可选：usage_report.py 生成的报告
+  last_call_id: ""
 subtasks: []
 attempt: 1
 feedback_path: ""

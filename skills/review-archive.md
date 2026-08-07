@@ -15,7 +15,7 @@ Reader 是编辑模式的内容裁判，按**幕**批量冷读（幕末统一审
 ```text
 outline.chapters（章纲完成，顺序链路）
 → 逐章写作（幕内草稿按序形成，不立即审读）：
-   第 M 章：`prompt.create`（前情取自上一章草稿全文 + 状态文件）→ `prompt.review`（默认审计）
+   第 M 章：`prompt.create`（读 act-pack + 本章动态资料；前情取自上一章草稿全文 + 状态文件）→ 顶层轻量审查（按需 `prompt.review` 细节审查）
    → `edit.write`：writer ×1 写草稿 drafts/vol-N-ch-M.md
 → 幕末批量审读（幕内全部草稿形成后）：
    → `edit.review`：Reader 按幕顺序冷读全部草稿（上下文含前幕已提交正文），出冷读报告
@@ -41,7 +41,7 @@ outline.chapters（章纲完成，顺序链路）
 
 | 步骤 | operation | 角色 | 读 | 写 | 判定 → 下一跳 |
 |---|---|---|---|---|---|
-| 1 | `edit.write`（幕内逐章） | writer ×1（每章） | 单章 base + 目标 Prompt | `drafts/vol-N-ch-M.md` | 幕内全部草稿形成 → 步骤 2 |
+| 1 | `edit.write`（幕内逐章） | writer ×1（每章） | 单章 base + 目标 Prompt | `drafts/vol-N-ch-M.md` | 每章草稿完成后轻量 `state.update phase: delta`（不写 settings）；幕内全部草稿形成 → 步骤 2 |
 | 2 | `edit.review` | reader ×1（一幕） | 先只读本幕草稿（冷读，上下文含前幕已提交正文），首读后才读 continuity contract 与诊断知识 | 冷读报告 | 报告给出 verdict 与复读范围 → 步骤 3 |
 | 3 | `edit.anti-ai` | anti-ai ×1（同幕） | 同幕章节正文、`knowledge/anti-ai/index.md` | Anti-AI 报告 | 每章全量扫描列全 → 步骤 4 |
 | 4 | `edit.synthesize` | edit-synthesizer ×1 | 两份报告；分歧/断言处可最小正文核对 | 整体返修意见 | 问题全部分级归属 → 步骤 5 或直接 `edit.commit` |

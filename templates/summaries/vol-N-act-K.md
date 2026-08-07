@@ -4,12 +4,12 @@ volume: {N}
 act: {K}
 template_version: "0.3.0"
 based_on: {正文范围，如 texts/vol-1-ch-8 至 vol-1-ch-14（编辑模式）或 drafts/vol-1-ch-8 至 vol-1-ch-14（写作模式）}
-generated_at: {vol-N-act-K 末章验收/提交后}
+generated_at: {vol-N-act-K 末章最终 texts 提交后}
 ---
 
 # 第 {N} 卷第 {K} 幕正文总结
 
-> 本文件是**幕末正文总结（派生缓存，非真相源）**：由 `state.update` 在本幕末章验收/提交后从**实际正文**压缩生成，供跨幕 prompt-crafter、规划与完本阅读使用。事实以 `settings/`（state_history/timeline/foreshadowing）与正文为准；本文件每条都带章节锚点，发现与正文/状态文件矛盾时以正文为准并回告顶层。
+> 本文件是**幕末正文总结（派生缓存，非真相源）**：由 `state.update phase: commit` 在本幕末章最终 `texts/` 提交后从**实际正文**压缩生成，供跨幕 prompt-crafter、规划与完本阅读使用。事实以 `settings/`（state_history/timeline/foreshadowing）与正文为准；本文件每条都带章节锚点，发现与正文/状态文件矛盾时以正文为准并回告顶层。
 
 ## 幕内事件链（按发生顺序，每条带章节锚点）
 

@@ -4,7 +4,7 @@ description: 显式完本任务使用的全书 Reader。按幕顺序冷读全书
 agent_created: true
 role: 完本质量 Reader
 react: true
-changed_in: "0.2.3"
+changed_in: "0.3.0"
 ---
 
 # completion-reviewer

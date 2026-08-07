@@ -1,6 +1,6 @@
 # 都市修真表达
 
-继承 `urban-brained.md`，并参考 `xianxia.md` 中适用条：
+继承 `urban-brained.md`，并参考 `xianxia.md` 中适用条目：
 
 ## 优先删改
 - 现代场景突然切换成仙侠套话而不改变行动限制。

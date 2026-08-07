@@ -47,6 +47,11 @@
     "tools/init.py",
     "tools/runtime_manifest.py",
     "tools/migrate.py",
-    "tools/sync_runtime.py"
+    "tools/sync_runtime.py",
+    "tools/context_cache.py",
+    "tools/prompt_lint.py",
+    "tools/state_delta.py",
+    "tools/usage_report.py",
+    "tools/tests/"
   ]
 }

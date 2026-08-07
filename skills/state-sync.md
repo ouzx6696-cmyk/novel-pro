@@ -1,6 +1,8 @@
 # State Sync（状态同步）
 
-本模块规定 `state.update` operation：把已验收章节的**真实正文事实**回流到 `settings/` 事实文件（角色状态历史、时间线、伏笔台账），并消费规划层提出的「设定变更通知」。它是"当前状态"系统的落点：每一章验收后状态文件即反映最新事实，下一章 Prompt 创建时直接读到。
+<!-- changed_in: 0.3.0 -->
+
+本模块规定 `state.update` operation：先把已完成章节压缩为临时 `chapter-delta`，再把最终 `texts/` 中的真实正文事实回流到 `settings/` 事实文件（角色状态历史、时间线、伏笔台账），并消费规划层提出的「设定变更通知」。临时 delta 只服务顺序链路的下一章，不是真相源；正式 `state.update` 仍以最终 `texts/` 为唯一事实来源。
 
 ## 触发与执行
 
@@ -9,17 +11,32 @@
 - **触发时机**（双模式接入）：
   - **写作模式**：本章草稿被顶层**接受**后执行（输入为验收草稿 `drafts/vol-N-ch-M.md`）。
   - **编辑模式**：本章 `edit.commit` 写入 `texts/vol-N-ch-M.md` 后执行（输入为定稿正文）。
-- **幕末附加动作**：当本章是幕末章时，追加生成/更新幕总结 `summaries/vol-N-act-K.md`（见下方第 5 项）。
-- **输出**：追加式更新；不修改已接受正文、不修改 Prompt、不修改 `.agent` 控制面文件。
+- **内部阶段**：`phase: delta` 只生成工作态增量；`phase: commit` 才执行正式回流。两阶段仍使用同一个 `state.update` operation，不增加长期 cursor 或 operation。
+- **幕末附加动作**：正式 `commit` 阶段且本章是幕末章时，追加生成/更新幕总结 `summaries/vol-N-act-K.md`（见下方第 5 项）。
+- **输出**：delta 阶段只返回结构化结果，由顶层写入当前 task；commit 阶段追加式更新 settings。角色都不写 `.agent` 控制面文件。
 
 ## 输入
 
-- 目标章节验收稿（`drafts/`）或定稿（`texts/`）——事实的唯一来源。
+- 目标章节草稿（`drafts/`）或定稿（`texts/`）。delta 阶段以草稿为工作事实；commit 阶段只接受最终 `texts/` 作为正式事实来源。
 - 目标章纲（`chapters/vol-N-ch-M.md`）：`chapter_end_state` 作核对锚点；末尾「设定变更通知」块待消费。
 - 所在幕纲（`acts/vol-N-act-K.md`）：「设定变更通知」块待消费。
 - 既有 `settings/` 文件：`character-setting/`、`timeline.md`、`foreshadowing.md`。
 
-## 输出（五项回流）
+## 阶段 A：chapter-delta（工作态增量）
+
+章节草稿完成后执行一次轻量提取，不修改 settings。continuity-updater 返回结构化 delta，由顶层持久化到 `.agent/tasks/<task-id>/chapter-delta.yaml`，必要时同时更新同一 task 的 `working-state.yaml`。最小字段为：
+
+- 章节锚点、正文来源路径和 SHA-256 hash；
+- 角色状态变化；
+- 各角色知道/不知道/误判的信息持有；
+- 时间线变化；
+- 伏笔变化；
+- 设定变更通知（已兑现/未兑现）；
+- 与 `chapter_end_state` 的偏差。
+
+下一章 Prompt 可以读取当前 task 的 delta 和 working-state 作为增量上下文；缺失时回退到上一章真实正文和既有 settings。delta 不得写入长期 settings，不得被当作已确认事实。
+
+## 阶段 B：正式 state.update（四项回流；幕末章附加幕总结）
 
 ### 1. 角色状态变更块（character-setting/{id}.md → state_history 节）
 
@@ -52,23 +69,23 @@
 
 ### 5. 幕末正文总结（幕末章附加动作）
 
-当本章是本幕的**最后一章**（order 目标范围终点或幕纲 `chapter_roles` 末章）时，`state.update` 额外生成/更新幕末正文总结 `summaries/vol-N-act-K.md`（模板见 `templates/summaries/vol-N-act-K.md`）：
+当本章是本幕的**最后一章**（order 目标范围终点或幕纲 `chapter_roles` 末章）且已进入 `phase: commit` 时，`state.update` 额外生成/更新幕末正文总结 `summaries/vol-N-act-K.md`（模板见 `templates/summaries/vol-N-act-K.md`）：
 
 - **内容**：幕内事件链（每章一条，带章节锚点）、人物状态与关系变化（与 state_history 核对）、信息差状态（幕末谁知道什么）、伏笔状态（与 foreshadowing 核对）、未闭合张力（跨幕驱动）、幕末承接帧（幕末最后一章真实结尾画面/情绪残留/缺口）。
-- **来源**：本幕全部已验收正文（写作模式 `drafts/` 或编辑模式 `texts/`），只压缩实际发生的事实；与 `settings/` 状态文件交叉核对，矛盾以正文为准并回告顶层。
+- **来源**：本幕全部已提交正文 `texts/`，只压缩实际发生的事实；与 `settings/` 状态文件交叉核对，矛盾以最终正文为准并回告顶层。写作模式只有临时 delta，不在此阶段生成正式幕总结。
 - **幂等**：`based_on` 相同的幕总结已存在且本章未返修重写时跳过；幕内任一章节被返修重写后，由对应 `state.update` 更新幕总结。
 - **纪律**：幕总结是**派生缓存，不是真相源**——每条带章节锚点；事实判定始终以正文与 `settings/` 状态文件为准；prompt-crafter 跨幕读取它作导航，不把它当第二套状态机。
 
 ## 幂等与覆盖刷新
 
 - **新锚点追加**：目标文件中不存在同章节锚点条目/状态块时，追加（不覆盖既有内容）。
-- **同锚点覆盖刷新**：同一章节的正文源发生变化时（写作模式验收稿 → 编辑模式定稿提交、或返修重写），以最新正文为准**替换**该锚点块/条目——同一章的事实记录只保留最终版本，不产生重复块；锚点相同且正文源未变时跳过（幂等）。
+- **同锚点覆盖刷新**：同一章节的正文源发生变化时（task delta → 编辑模式最终定稿提交，或返修重写），以最终 `texts/` 为准**替换**该锚点块/条目——同一章的事实记录只保留最终版本，不产生重复块；锚点相同且正文源未变时跳过（幂等）。
 - **回滚**：章节回滚/重写导致已追加内容过时时，按锚点删除对应块与条目（宁少删，不删未确认的内容）；由顶层在回滚后安排 `state.update` 对受影响章节重新同步。
 
 ## 纪律
 
 - **只写正文已兑现的事实**：正文是事实的唯一来源。规划承诺（must_hold、chapter_end_state、设定变更通知）只是核对锚点，正文未兑现的不写入 settings。
-- **新锚点只追加、同锚点以最新正文为准**：state_history、时间线、伏笔台账按章锚点追加；同一章正文源变化（草稿验收→定稿提交、返修重写）时覆盖刷新该锚点记录，不产生重复块；既有其他内容不静默改写。
+- **新锚点只追加、同锚点以最新正文为准**：state_history、时间线、伏笔台账按章锚点追加；同一章正文源变化（delta→最终定稿、返修重写）时覆盖刷新该锚点记录，不产生重复块；既有其他内容不静默改写。
 - **与 chapter_end_state 核对**：正文与章纲快照一致 → 正常追加；不一致 → 以正文为准追加，并在返回摘要中列出偏差清单（提示规划层是否需要调整后续章纲）。
 - **认知层纪律**：状态变更涉及认知层 1-3（世界观/自我定位/价值观）时必须注明支撑事件；找不到支撑事件的变更视为漂移，写入偏差清单回告顶层，不写入档案。
 - **不越权**：不修改已接受正文、不修改 Prompt、不修改卷幕章规划（移除通知块除外）、不写 `.agent` 文件、不创建或调度其他角色。
@@ -76,7 +93,13 @@
 
 ## 返回摘要
 
-continuity-updater 返回时附摘要（只陈述事实）：
+### delta 阶段
+
+只返回 `chapter_delta`、`source_path`、`source_hash`、`deviations` 和 `next_context`。不得回显正文，不得声称 settings 已更新；由顶层写入 task 现场并在 `order.state_delta` 标记 `captured: true`。
+
+### commit 阶段
+
+continuity-updater 在 commit 阶段返回时附摘要（只陈述事实）：
 
 - 追加了哪些角色状态块 / 时间线条目 / 伏笔进展（按文件列清单）。
 - 消费了哪些设定变更通知（哪些已消费移除、哪些未兑现保留）。
@@ -86,6 +109,6 @@ continuity-updater 返回时附摘要（只陈述事实）：
 
 - **writer 边界不动**：writer 仍只收单章 base + 单章 Prompt，不读 settings/；状态回流发生在 writer 之后。
 - **Reader 冷读保护不动**：Reader、completion-reviewer 首读仍不预挂状态文件，按需追因路径一字不改。
-- **Prompt 创建侧**：prompt-crafter 在创建下一章 Prompt 时读取更新后的状态文件（角色状态历史、时间线、伏笔台账），这是「角色初始状态」「前情上下文」的事实来源。
+- **Prompt 创建侧**：在正式提交前，prompt-crafter 可读取当前 task 的 chapter-delta/working-state 加上上一章真实正文；正式提交后再读取更新后的状态文件（角色状态历史、时间线、伏笔台账）。缓存或 delta 缺失时回退到既有 0.3 读取方式。
 - **alignment**：整卷对齐任务增加一项检查——状态文件与已接受正文是否连续（状态块缺失、信息持有矛盾即漂移），漂移列入重建清单。
 - **迁移**：状态同步是运行时行为，不搬运；旧项目迁移后首次 `state.update` 从已迁移正文补齐。

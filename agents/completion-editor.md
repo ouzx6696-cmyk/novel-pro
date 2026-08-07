@@ -4,7 +4,7 @@ description: 显式完本返修中的局部编辑器。一次只处理一个被�
 agent_created: true
 role: 局部返修编辑器
 react: true
-changed_in: "0.2.3"
+changed_in: "0.3.0"
 skills:
   - path: skills/completion-quality.md
     description: EDIT 候选、复读和提交边界

@@ -190,7 +190,7 @@ optional_fields: [values, blind_spots, arc_trajectory, notes]
 
 ## state_history（状态变更历史，追加式维护）
 
-**填写说明**：由 `state.update`（continuity-updater）在每个已验收章节后**追加**状态变更块，只追加不覆盖；planner 与 prompt-crafter 从最近的块倒读，重建人物"截至当前章"的状态与知识存量。块按章节锚点追加，幂等——同一章节已存在则跳过。写作模式验收草稿后与编辑模式 `edit.commit` 后都会追加。详细规则见 `skills/state-sync.md`。
+**填写说明**：由 `state.update phase: commit`（continuity-updater）在每个最终 `texts/` 章节后**追加**状态变更块，只追加不覆盖；草稿阶段只形成 task-local chapter-delta。planner 与 prompt-crafter 从最近的块倒读，重建人物"截至当前章"的状态与知识存量。块按章节锚点追加，幂等——同一章节已存在则覆盖刷新最终来源。详细规则见 `skills/state-sync.md`。
 
 ```markdown
 ## vol-{N}-ch-{M} 状态变更
@@ -229,7 +229,7 @@ optional_fields: [values, blind_spots, arc_trajectory, notes]
 ### 何时填写
 - 由 volume-planner 在初始化或规划阶段创建主要人物卡
 - 由 act-planner、chapter-planner 在发现需要补充细节时更新
-- **state_history 节由 `state.update`（continuity-updater）在每章验收/提交后追加，planner 不手动维护**；planner 只通过「设定变更通知」提出变更需求
+- **state_history 节由 `state.update phase: commit`（continuity-updater）在最终正文提交后追加，planner 不手动维护**；planner 只通过「设定变更通知」提出变更需求
 - 存储在 `settings/character-setting/` 目录下
 
 ### 与知识库对应关系
@@ -241,7 +241,7 @@ optional_fields: [values, blind_spots, arc_trajectory, notes]
 
 ### 与其他文件关系
 - **卷纲**（volumes/volume-N.md）："人物弧线"字段引用本卡的 arc_trajectory
-- **幕纲**（acts/vol-N-act-K.md）："character_stakes"字段从本卡提取具体目标/恐惧
+- **幕纲**（acts/vol-N-act-K.md）："character_arcs"字段从本卡提取具体目标/恐惧
 - **章纲**（chapters/vol-N-ch-M.md）：从本卡获取人物状态、能力、关系
 - **Prompt**（prompts/vol-N-ch-M.md）：prompt-crafter 将本卡信息溶解到"人物动机与情绪"节
 

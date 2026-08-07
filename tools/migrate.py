@@ -163,7 +163,7 @@ def resolve_skill_root(source_project, cli_skill_root):
         seen.add(candidate)
         if is_current_skill_root(candidate):
             return candidate
-    raise SystemExit("找不到当前 novel-pro 开发版；请通过 --skill-root 指定技能目录。")
+    raise SystemExit("找不到当前 novel-pro 技能源目录；请通过 --skill-root 指定技能目录。")
 
 
 def story_value(project_root, key):
@@ -290,7 +290,7 @@ def insert_story_metadata(lines, missing):
     if not missing:
         return
     metadata = [f"- {key}: {value}" for key, value in missing]
-    heading_index = next((i for i, line in enumerate(lines) if line.strip() == "## 元信息"), None)
+    heading_index = next((i for i, line in enumerate(lines) if line.strip().startswith("## 元信息")), None)
     if heading_index is not None:
         lines[heading_index + 1:heading_index + 1] = metadata
         return
@@ -428,7 +428,10 @@ def copy_source_content(source_project, staging, target_project_name, skill_root
 
     for path, rel, path_kind in iter_source_files(source_project):
         rel_text = rel.as_posix()
-        if rel_text in {"story.md", "story.yaml"}:
+        # 派生产物不搬运（skills/migration.md「派生产物不搬运」）：settings/context-pack.md
+        # 等预制包不在搬运范围，新项目在本卷首个 prompt.create 按新 runtime 知识库重建；
+        # 搬运旧包会覆盖 init 刚按新模板生成的版本。
+        if rel_text in {"story.md", "story.yaml", "settings/context-pack.md"}:
             continue
         if path_kind == "symlink":
             item = {"path": rel_text, "category": "symlink", "reason": "符号链接未跟随复制"}

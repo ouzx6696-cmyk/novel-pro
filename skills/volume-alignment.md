@@ -1,5 +1,7 @@
 # Volume Alignment
 
+<!-- changed_in: 0.3.0 -->
+
 整卷对齐只在作者明确要求时运行。它按叙事顺序检查尚未执行的幕纲、章纲和 Prompt 是否共同服务卷目标，并把修改交给拥有对应产物的角色。
 
 `alignment` 只使用当前 order/task 记录范围，不改变长期 cursor，也不修改已接受 `texts/`。act-planner 只写幕产物，chapter-planner 只写章纲，prompt-crafter 只写 Prompt；顶层读过返回后再持久化报告和状态。
@@ -14,7 +16,7 @@ chapter-planner 一次处理一幕，顺序复读该幕全部章纲。第一章�
 
 ## Prompt
 
-顺序链路下 Prompt 由 prompt-crafter **逐章创建**（前情取自上一章真实正文、角色初始状态取自状态文件），不存在批量节点。对齐任务按本章范围形成或修复 Prompt；对齐产生的 Prompt 修复仍需经过默认 `prompt.review` 审计（顺序链路默认步骤），不因对齐而跳过。
+顺序链路下 Prompt 由 prompt-crafter **逐章创建**（读本幕 act-pack + 本章动态资料；前情取自上一章真实正文、角色初始状态取自状态文件），不存在批量节点。对齐任务按本章范围形成或修复 Prompt；对齐产生的 Prompt 修复仍需经过两级审查（顶层轻量审查，明确问题时 `prompt.review` 细节审查），不因对齐而跳过。
 
 ## 状态文件连续性检查
 

@@ -19,7 +19,7 @@ Novel Desk 是可选的本地作者工作台。Desk 存在时，双方仅通过�
 ## 二、分层架构
 
 ```
-  tools/          开发态工具（init / migrate / sync）
+  tools/          开发态工具（init / migrate / sync / lint / cache / usage）
     │
   templates/      第零层：初始化模板（定义项目的初始骨架）
     │
@@ -56,9 +56,9 @@ Novel Desk 是可选的本地作者工作台。Desk 存在时，双方仅通过�
 | `dispatch.md` | 启动时由 novel-agent 加载 | 状态机、派发卡、所有权、恢复规则 |
 | `planning.md` | `outline.volume`, `outline.chapters` | 卷纲形成、章纲形成（info_gap/章末状态快照/设定变更通知）、文风确认 |
 | `act-planning.md` | `outline.act-map`, `outline.act` | 幕地图、详细幕纲、幕间承接 |
-| `prompt.md` | `prompt.create`, `prompt.review` | 单章 Prompt 创建（前情三件套/角色初始状态）、默认逐章审计 |
-| `context-pack.md` | 首个 `prompt.create` 任务 | 知识预制包的建包/用包/重建 |
-| `state-sync.md` | `state.update` | 状态回流：角色状态/时间线/伏笔/设定变更通知消费 |
+| `prompt.md` | `prompt.create`, `prompt.review` | 单章 Prompt 创建（前情三件套/角色初始状态）、两级审查（顶层轻量审查默认 + 按需细节审查） |
+| `context-pack.md` | 首个 `prompt.create` 任务 + 幕首章前顶层建包 | 知识预制包（context-pack）建包/用包/重建 + 幕级复用资料包（act-pack）建立/使用 |
+| `state-sync.md` | `state.update` | 先生成 chapter-delta，最终 texts 提交后正式回流角色状态/时间线/伏笔/设定变更通知 |
 | `writer-construction.md` | `write.draft`, `edit.write` | writer base 构造规范 |
 | `writing.md` | `write.draft`, `edit.write` | 顺序链路调度、真实展开原则 |
 | `review-archive.md` | `edit.review`, `edit.anti-ai`, `edit.synthesize`, `edit.repair`, `edit.commit` | 编辑模式幕末批量阅读闭环、Anti-AI 全量扫描、整体返修裁决、分流返修与正文提交 |
@@ -71,11 +71,11 @@ Novel Desk 是可选的本地作者工作台。Desk 存在时，双方仅通过�
 
 ### L3：角色执行
 
-13 个 agent。每个 agent 声明了自己的 skill 模块和知识挂载。角色之间的上下文隔离是刻意的：
+13 个 agent。各 agent 按职责在 frontmatter 声明 skill 模块与知识挂载；其中 writer、reader、completion-reviewer 为有意的零挂载例外（writer 零知识隔离、Reader 冷读保护、completion-reviewer 首读不预挂知识，详见 interface-reference）。角色之间的上下文隔离是刻意的：
 
 - **novel-agent**：唯一调度器。自身在 `edit.commit` 和 `migration.review` 中可被作为 subagent 创建。
 - **volume-planner / act-planner / chapter-planner**：规划层。写规划产物。
-- **prompt-crafter / prompt-reviewer**：Prompt 层。prompt-crafter 单章创建（前情取自真实正文）；prompt-reviewer 默认逐章独立审计（9 维度）。
+- **prompt-crafter / prompt-reviewer**：Prompt 层。prompt-crafter 单章创建（读幕级复用资料包 act-pack + 本章动态资料，前情取自真实正文）；prompt-reviewer 按需派发（顶层轻量审查发现明确问题或作者要求时），先接收 lint 结果，再细节审计真实承接、层间一致、信息差和核心场景可执行性。
 - **writer / reader**：写作层。writer 只收 base + Prompt（不接触知识库）；reader 按幕冷读，首读不预挂知识。
 - **continuity-updater**：状态层。每章验收/提交后从正文回流状态到 `settings/`（state_history/时间线/伏笔/通知消费）。
 - **anti-ai / edit-synthesizer / completion-reviewer / completion-editor**：质检层。分别处理表达扫描与编辑、整体返修裁决、完本审查、完本编辑。
@@ -107,7 +107,7 @@ Novel Desk 是可选的本地作者工作台。Desk 存在时，双方仅通过�
 
 ### 外挂层：开发态工具
 
-`tools/` 目录的 Python 脚本（init.py、migrate.py、sync_runtime.py、runtime_manifest.py、_common.py）。独立于 Agent 运行时，执行文件操作。
+`tools/` 目录的 Python 脚本（init.py、migrate.py、sync_runtime.py、runtime_manifest.py、context_cache.py、prompt_lint.py、state_delta.py、usage_report.py、_common.py）。独立于 Agent 运行时，执行文件操作、确定性预检、缓存/delta hash 管理和 usage 汇总；不承担文学评分。
 
 ---
 
@@ -129,17 +129,18 @@ story.md（题材方向）
 
 ```
 写作模式（每章小循环）：
+幕首章前：顶层建幕级复用资料包 act-pack（manifest + 语义摘要）
 第 M 章：prompt-crafter → prompts/vol-N-ch-M.md（contract-4 六块）
-  ↑ 前情三件套取自上一章真实正文（同幕全文；跨幕读幕总结）；角色初始状态取自已回流的状态文件
-→ prompt-reviewer → 默认逐章审计（9 维度）→ PASS/FIX/STOP
-→ writer → drafts/ → 顶层阅读三向判定 → continuity-updater → state.update（状态回流）→ 第 M+1 章
+  ↑ 读 act-pack（本幕稳定资料）+ 本章动态资料；前情三件套取自上一章真实正文（同幕全文；跨幕读幕总结）；角色初始状态取自已回流的状态文件
+→ prompt_lint.py 结构预检 → 顶层轻量审查（无明确问题直接进写作；明确问题或作者要求 → prompt-reviewer 细节审查 → PASS/FIX/STOP）
+→ writer → drafts/ → 顶层阅读三向判定 → state.update phase: delta → chapter-delta → 第 M+1 章
 
 编辑模式（逐章写作 + 幕末批量审读）：
-第 M 章：prompt.create（前情取自上一章草稿全文）→ prompt.review → edit.write（writer ×1 写草稿）
+第 M 章：prompt.create（读 act-pack + 本章动态资料；前情取自上一章草稿全文）→ 顶层轻量审查（按需 prompt.review）→ edit.write（writer ×1 写草稿）
 → 幕内全部草稿形成后：
   reader 按幕冷读 → anti-ai 同幕全量扫描 → edit-synthesizer 整体裁决
   → edit.repair 分流返修（REGENERATE 改变既定事实 → 后继章前情刷新）→ Reader 复读
-  → edit.commit（逐章）→ state.update（逐章，同锚点覆盖刷新；幕末章含幕总结）→ 下一幕
+  → edit.commit（逐章）→ state.update phase: commit（逐章，同锚点覆盖刷新；幕末章含幕总结）→ 下一幕
 ```
 
 每一次传递是**信息密度增加而非复制**。Prompt 嵌入全部此刻上下文（真实上文 + 当前状态），变成 writer 可执行的行动过程。
@@ -147,15 +148,17 @@ story.md（题材方向）
 ### 状态回流链（正文 → settings/幕总结 → 下一章 Prompt）
 
 ```
-正文（验收稿 drafts/ 或定稿 texts/）
-→ continuity-updater（state.update，按章锚点追加，幂等）
+草稿 `drafts/`
+→ continuity-updater（返回 chapter-delta，顶层持久化 task-local）
+最终正文 `texts/`
+→ continuity-updater phase: commit（按章锚点追加，幂等）
 → settings/character-setting/*.md（state_history 状态块）+ timeline.md（章节锚点条目）+ foreshadowing.md（台账推进）
   + 消费章纲/幕纲「设定变更通知」块
 → 幕末章额外生成 summaries/vol-N-act-K.md（幕末正文总结：事件链/人物状态/信息差/伏笔/未闭合张力/幕末承接帧）
 → 下一章 prompt-crafter：同幕读上一章全文（质感与承接）；跨幕首章读幕总结（导航）+ 上一章结尾帧
 ```
 
-这是"当前状态"系统：每章验收后状态文件即反映最新事实，幕末章后幕总结压缩全幕发生的事，下一章 Prompt 永远读到最新状态——前后文矛盾的机制性解法。幕总结是**派生缓存非真相源**：每条带章节锚点，事实以正文与 `settings/` 为准。
+这是"当前状态"系统：草稿完成后先形成 task 内 chapter-delta/working-state，供下一章低成本承接；最终 `texts/` 提交后正式 state.update 才更新 settings。幕末章后幕总结压缩全幕发生的事，下一章 Prompt 读取最新正文、正式状态和有效 delta；缓存缺失或 hash 失效时回退现有读取方式。幕总结与 delta 都是**派生缓存非真相源**：每条带章节锚点，事实以正文与 `settings/` 为准。
 
 ### 阅读链（编辑模式 reader → anti-ai → synthesize → repair → commit）
 
@@ -165,7 +168,7 @@ story.md（题材方向）
 → anti-ai 同幕章节全量扫描（出 Anti-AI 报告，不动文）
 → edit-synthesizer 读两份报告：标注来源 + 评估严重等级(严重/中等/轻微) + 给整体返修意见
 → edit.repair 按意见整体返修（严重 REGENERATE / 中等轻微 anti-ai 编辑；改变既定事实时后继章前情刷新）
-→ 受影响范围复读 → edit.commit（逐章）→ texts/ → state.update（逐章）→ 下一幕
+→ 受影响范围复读 → edit.commit（逐章）→ texts/ → state.update phase: commit（逐章）→ 下一幕
 ```
 
 ### 知识链（knowledge → context-pack → prompt-crafter）
@@ -196,9 +199,9 @@ outline.volume → outline.acts → outline.chapters
 
 ### 临时 operation（18 种）
 
-每个 operation 对应 dispatch.md 中的一张派发卡。operation 比 cursor 更细——例如 `outline.acts` 阶段内可依次执行 `outline.act-map` 和 `outline.act`；`draft.write` 阶段内逐章交替执行 `prompt.create`/`prompt.review`/`write.draft`（或 `edit.*` 链）/`state.update`。
+每个 operation 对应 dispatch.md 中的一张派发卡。operation 比 cursor 更细——例如 `outline.acts` 阶段内可依次执行 `outline.act-map` 和 `outline.act`；`draft.write` 阶段内逐章交替执行 `prompt.create`/顶层轻量审查/（按需 `prompt.review`）/`write.draft`（或 `edit.*` 链）/`state.update`。
 
-旁路 operation（不改变 cursor）：`completion.inspect`、`completion.revise`、`alignment`。`prompt.review` 与 `state.update` 是顺序链路默认步骤（在 `draft.write` 内执行），不是旁路。
+旁路 operation（不改变 cursor）：`completion.inspect`、`completion.revise`、`alignment`。`state.update` 是顺序链路默认步骤（在 `draft.write` 内执行）；`prompt.review` 是按需细节审查步骤（顶层轻量审查发现明确问题或作者要求时执行），不是旁路。
 
 ---
 
@@ -244,7 +247,7 @@ outline.volume → outline.acts → outline.chapters
 
 ### 流程规则（skills/）
 - `planning.md`、`act-planning.md`：规划规则
-- `prompt.md`、`context-pack.md`：Prompt 创建与默认审计规则
+- `prompt.md`、`context-pack.md`：Prompt 创建、两级审查与预制包（context-pack / act-pack）规则
 - `state-sync.md`：状态回流规则
 - `writer-construction.md`、`writing.md`：顺序链路与写作规则
 - `review-archive.md`、`cold-read-discipline.md`、`edit-boundary.md`：阅读与编辑规则
@@ -261,4 +264,4 @@ outline.volume → outline.acts → outline.chapters
 - 项目级模板 + 控制面模板 + 设定模板 + 运行时模板
 
 ### 工具（tools/）
-- 5 个 Python 脚本
+- 9 个 Python 脚本（含 `_common.py`）

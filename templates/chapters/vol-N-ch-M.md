@@ -47,7 +47,7 @@ required_fields: [goal, reader_effect, conflict, characters, info_gap, scenes, m
 
 ## chapter_end_state（章末状态快照，必填）
 
-**填写说明**：本章结束后每个出场角色的状态快照，供 state.update 核对并从正文回流事实。写"从什么变成什么"的可检验状态：
+**填写说明**：本章结束后每个出场角色的状态快照，供 chapter-delta 及最终 `state.update phase: commit` 核对并从正文回流事实。写"从什么变成什么"的可检验状态：
 
 - {角色A}：{位置/身体状态/已知信息/关系阶段/能力或资源变化}
 - {角色B}：{同上}
@@ -63,7 +63,7 @@ required_fields: [goal, reader_effect, conflict, characters, info_gap, scenes, m
 
 ## 设定变更通知（可选，有需要时追加）
 
-**填写说明**：本章规划确认了会改变项目事实的变更时，追加此块；由 `state.update` 在验收/提交后消费并**从源文件中移除**，防止重复消费。块内容不进入 Prompt。
+**填写说明**：本章规划确认了会改变项目事实的变更时，追加此块；草稿阶段由 chapter-delta 记录兑现情况，最终 `texts/` 提交后由 `state.update phase: commit` 消费并**从源文件中移除**，防止重复消费。块内容不进入 Prompt。
 
 ```markdown
 ## 设定变更通知
@@ -110,7 +110,7 @@ A: conflict 定人物间不可退让的张力，scenes 把张力落到每场的�
 A: characters 写人物的动机、误判与关系位置；info_gap 是信息差的可检验清单（谁知道什么、谁不知道、开场到结尾怎么变），两者互为参照，都是 Prompt「角色初始状态」与施压点的上游。
 
 **Q: chapter_end_state 与 ends_with 的关系？**
-A: ends_with 是本章最后一帧画面（正文停在哪）；chapter_end_state 是本章结束后的事实状态快照（人物/关系/信息/能力变成什么），供 state.update 核对回流。
+A: ends_with 是本章最后一帧画面（正文停在哪）；chapter_end_state 是本章结束后的事实状态快照（人物/关系/信息/能力变成什么），供 chapter-delta 和最终 state.update 核对回流。
 
 **Q: 什么时候用设定变更通知？**
-A: 本章正文会产生新角色、明确的关系/能力/世界变化，或需要时间线/伏笔新条目时。变更进入正文并验收后由 state.update 消费；规划层的通知不是事实，正文没有兑现就不能写入 settings。
+A: 本章正文会产生新角色、明确的关系/能力/世界变化，或需要时间线/伏笔新条目时。变更进入草稿时先由 chapter-delta 记录，最终 `texts/` 提交后由 state.update phase: commit 消费；规划层的通知不是事实，正文没有兑现就不能写入 settings。

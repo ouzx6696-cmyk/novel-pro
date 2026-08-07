@@ -16,8 +16,9 @@ python tools/init.py <project-path> --genre <题材编号>
 -> outline.acts：整卷幕地图与详细幕纲
 -> outline.chapters：章纲（含信息差轨迹/章末状态快照）
 -> 顺序链路（逐章推进）：
-   第 M 章：prompt.create（读上一章真实正文 + 状态文件）
-   -> prompt.review（默认审计 9 维度）
+   第 M 章：prompt.create（读本幕 act-pack + 本章动态资料）
+   -> 顶层轻量审查（lint + 阅读；无明确问题直接进写作）
+   -> prompt.review 细节审查（仅轻量审查发现明确问题或作者要求时）
    -> 写作模式 write.draft 或 编辑模式 edit.write → … → edit.commit
    -> state.update（状态回流：角色状态/时间线/伏笔/通知消费）
    -> 第 M+1 章
@@ -35,7 +36,7 @@ python tools/init.py <project-path> --genre <题材编号>
 
 ## 版本门禁与完整迁移
 
-门禁判定条件以 `skills/dispatch.md` 的“版本与迁移边界”为准。概要：旧项目（`story.yaml`、缺少或错误 profile、缺少迁移字段）不直接兼容，也不允许继续走运行时同步；先从当前开发版运行：
+门禁判定条件以 `skills/dispatch.md` 的“版本与迁移边界”为准。概要：旧项目（`story.yaml`、缺少或错误 profile、缺少迁移字段）不直接兼容，也不允许继续走运行时同步；先从当前版本运行：
 
 ```text
 python tools/migrate.py <旧项目> <新项目>
@@ -57,14 +58,15 @@ Novel Desk 是可选的本地作者工作台，不是 Agent 控制台：它不�
 → `outline.acts`：整卷幕地图与详细幕纲
 → 章纲（蓝图，按幕批量形成）
 → 顺序链路（draft.write，逐章推进）：
-   prompt.create（单章）
-   → prompt.review（默认审计）
+   prompt.create（单章：读幕级复用资料包 act-pack + 本章动态资料）
+   → 顶层轻量审查（lint + 阅读，无明确问题直接进写作）
+   → prompt.review（仅轻量审查发现明确问题或作者要求时）
    → write.draft（写作模式）或 edit.* 闭环（编辑模式）
    → state.update（状态回流）
 → drafts.ready 或 volume.complete
 ```
 
-**设计核心**：Prompt 不再提前批量创建，而是跟随正文顺序逐章创建。第 M 章 Prompt 的「前情上下文」三件套（上章结尾画面/情绪残留/缺口）直接取自第 M-1 章真实验收稿/定稿，「角色初始状态」取自已回流的状态文件（角色 `state_history`/时间线/伏笔台账）——提示词永远建立在真实上文与最新状态之上，从机制上消除前后文矛盾。每章 Prompt 落盘后由 prompt-reviewer 独立审计（9 维度），通过才进入写作。本卷首个 Prompt 创建任务会从知识库裁剪压缩出 `settings/context-pack.md` 预制包，后续任务读包替代知识下钻。
+**设计核心**：Prompt 不再提前批量创建，而是跟随正文顺序逐章创建。第 M 章 Prompt 的「前情上下文」三件套（上章结尾画面/情绪残留/缺口）直接取自第 M-1 章真实验收稿/定稿，「角色初始状态」取自已回流的状态文件（角色 `state_history`/时间线/伏笔台账）——提示词永远建立在真实上文与最新状态之上，从机制上消除前后文矛盾。**每幕开始时顶层会建立幕级复用资料包（act-pack）**，把幕内稳定资料压缩为一包；幕内每章 Prompt 创建只读 act-pack + 本章动态资料，避免逐章重复读取。每章 Prompt 落盘并 lint 后由顶层轻量审查，只有发现明确问题或作者要求时才派发 prompt-reviewer 细节审查（9 维度），通过才进入写作。本卷首个 Prompt 创建任务会从知识库裁剪压缩出 `settings/context-pack.md` 预制包，后续任务读包替代知识下钻。
 
 ## Writer 派发
 
@@ -89,7 +91,7 @@ base 与 Prompt 职责分开：base 提供通用写作框架（身份、写作�
 
 ```text
 逐章写作（幕内草稿按序形成）：
-prompt.create → prompt.review（默认审计）→ edit.write（writer ×1 写草稿）
+prompt.create（读 act-pack + 本章动态资料）→ 顶层轻量审查（按需 prompt.review）→ edit.write（writer ×1 写草稿）
 → 幕末批量审读：
 edit.review（Reader 按幕冷读，上下文含前幕已提交正文）
 → edit.anti-ai（Anti-AI 同幕章节全量扫描报告）
@@ -113,7 +115,7 @@ Reader 按幕冷读出冷读报告；anti-ai 随后全量扫描同幕章节出 A
 
 ## 运行态
 
-- `.agent/status.yaml`：长期创作阶段（9 阶段）和迁移状态。
+- `.agent/status.yaml`：长期创作阶段（8 阶段）和迁移状态。
 - `.agent/order.yaml`：当前任务、范围、批次、`current_chapter`、`state_updated` 与 subtasks。
 - `.agent/tasks/<task-id>/`：报告、候选和恢复现场。
 - `.agent/run-log.yaml`：重大失败、中断、重写和作者决策。
@@ -137,7 +139,7 @@ python tools/init.py <project-path> --genre <题材编号>
 | `act-planner` | 整卷幕地图或一个详细幕 |
 | `chapter-planner` | 一幕全部章纲（9 必填字段） |
 | `prompt-crafter` | 单章 Prompt（顺序链路，前情取自真实正文） |
-| `prompt-reviewer` | 单章 Prompt 独立审计（顺序链路默认步骤，9 维度） |
+| `prompt-reviewer` | 单章 Prompt 细节审查（按需派发：顶层轻量审查发现明确问题或作者要求时，9 维度） |
 | `writer` | 一章草稿或内容返修 |
 | `reader` | 单章冷读与复读（上下文含本章前全部已提交正文） |
 | `continuity-updater` | 单章状态回流（state.update） |
